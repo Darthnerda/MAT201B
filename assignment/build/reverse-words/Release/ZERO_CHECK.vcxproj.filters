@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\CMakeFiles\9682159d54268d15bc9a231a8efe2729\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D7C6630D-7701-35AB-A9C9-CD8F845A5BF6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
