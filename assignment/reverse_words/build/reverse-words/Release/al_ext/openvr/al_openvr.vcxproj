@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F6EA13C6-EA92-35EB-B2FB-9934E158184C}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>al_openvr</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\al_ext\openvr\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">al_openvr.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">al_openvr</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\al_ext\openvr\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">al_openvr.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">al_openvr</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NOMINMAX;AL_WINDOWS;AL_AUDIO_RTAUDIO;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;AL_WINDOWS;AL_AUDIO_RTAUDIO;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NOMINMAX;AL_WINDOWS;AL_AUDIO_RTAUDIO;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NOMINMAX;AL_WINDOWS;AL_AUDIO_RTAUDIO;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Code\MAT 240B\allolib_playground\al_ext\..;C:\Code\MAT 240B\allolib_playground\al_ext\openvr\..\..;C:\Code\MAT 240B\allolib_playground\allolib\include;C:\Code\MAT 240B\allolib_playground\allolib\external\Gamma;C:\Code\MAT 240B\allolib_playground\allolib\external\rtaudio;C:\Code\MAT 240B\allolib_playground\allolib\external\rtmidi;C:\Code\MAT 240B\allolib_playground\allolib\external\glew\include;C:\Program Files\Mega-Nerd\libsndfile\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glfw\include;C:\Code\MAT 240B\allolib_playground\allolib\external\glad\include;C:\Code\MAT 240B\allolib_playground\allolib\external\cpptoml\include;C:\Code\MAT 240B\allolib_playground\allolib\external\dr_libs\dr_libs;C:\Code\MAT 240B\allolib_playground\allolib\external\json\single_include;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui;C:\Code\MAT 240B\allolib_playground\allolib\external\imgui\examples;C:\Code\MAT 240B\allolib_playground\allolib\external\oscpack;C:\Code\MAT 240B\allolib_playground\allolib\external\stb\stb;C:\Code\MAT 240B\allolib_playground\allolib\external\serial\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Code\MAT 240B\allolib_playground\al_ext\openvr\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Code/MAT 240B/allolib_playground/al_ext/openvr/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Code/MAT 240B/allolib_playground" "-BC:/Code/MAT 240B/allolib_playground/Darthnerda/assignment/build/reverse-words/Release" --check-stamp-file "C:/Code/MAT 240B/allolib_playground/Darthnerda/assignment/build/reverse-words/Release/al_ext/openvr/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\MAT 240B\allolib_playground\al_ext\BuildExamples.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\al_ext\openvr\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Code/MAT 240B/allolib_playground/al_ext/openvr/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Code/MAT 240B/allolib_playground" "-BC:/Code/MAT 240B/allolib_playground/Darthnerda/assignment/build/reverse-words/Release" --check-stamp-file "C:/Code/MAT 240B/allolib_playground/Darthnerda/assignment/build/reverse-words/Release/al_ext/openvr/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\MAT 240B\allolib_playground\al_ext\BuildExamples.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\al_ext\openvr\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Code\MAT 240B\allolib_playground\al_ext\openvr\src\al_OpenVRWrapper.cpp" />
+    <ClCompile Include="C:\Code\MAT 240B\allolib_playground\al_ext\openvr\src\al_OpenVRDomain.cpp" />
+    <ClInclude Include="C:\Code\MAT 240B\allolib_playground\al_ext\openvr\al_OpenVRWrapper.hpp" />
+    <ClInclude Include="C:\Code\MAT 240B\allolib_playground\al_ext\openvr\al_OpenVRDomain.hpp" />
+    <Natvis Include="C:\Code\MAT 240B\allolib_playground\allolib\external\json\nlohmann_json.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\Darthnerda\assignment\build\reverse-words\Release\ZERO_CHECK.vcxproj">
+      <Project>{FC6428C7-F122-338F-8E4A-B1212895AC51}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\Gamma\Gamma.vcxproj">
+      <Project>{88B93F44-AF0B-310F-B13F-8BE66E0B9208}</Project>
+      <Name>Gamma</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\al.vcxproj">
+      <Project>{708B95D8-6036-32FB-B22C-0B69ACDD0303}</Project>
+      <Name>al</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\glad\glad.vcxproj">
+      <Project>{BB8A79C1-A015-3B0A-9260-F052BF11A7F6}</Project>
+      <Name>glad</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\glfw\src\glfw.vcxproj">
+      <Project>{29E03ECD-290C-3F06-9141-0518A33601BF}</Project>
+      <Name>glfw</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\imgui.vcxproj">
+      <Project>{01D5AEE2-FFAD-3509-9A7B-12B0BA6DFC4D}</Project>
+      <Name>imgui</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\oscpack.vcxproj">
+      <Project>{947805CD-EF48-3E02-A0E8-FDAB31EA941B}</Project>
+      <Name>oscpack</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\rtaudio\rtaudio.vcxproj">
+      <Project>{102E42F2-9805-356D-A427-4AC402C60019}</Project>
+      <Name>rtaudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\rtmidi\rtmidi.vcxproj">
+      <Project>{33EF98FE-649A-39ED-8BD9-7A06C4DCA1B3}</Project>
+      <Name>rtmidi</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\MAT 240B\allolib_playground\allolib\build\external\serial.vcxproj">
+      <Project>{BD6B9E37-F996-3C06-A631-9975CF0D35DE}</Project>
+      <Name>serial</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

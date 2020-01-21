@@ -1,0 +1,8 @@
+# CMake generation dependency list for this directory.
+C:/Code/MAT 240B/allolib_playground/al_ext/BuildExamples.cmake
+C:/Code/MAT 240B/allolib_playground/al_ext/LibFindMacros.cmake
+C:/Code/MAT 240B/allolib_playground/al_ext/assets3d/CMakeLists.txt
+C:/Code/MAT 240B/allolib_playground/al_ext/assets3d/FindAssimp.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.16/Modules/FindPkgConfig.cmake

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Code\MAT 240B\allolib_playground\Darthnerda_201B\assignment\color_spaces\color_spaces.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Code\MAT 240B\allolib_playground\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="C:\Code\MAT 240B\allolib_playground\allolib\external\json\nlohmann_json.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{1D6257DA-7FD9-323C-85D3-A7A6B70CF865}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Code\MAT 240B\allolib_playground\al_ext\statedistribution\src\al_CuttleboneStateSimulationDomain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Code\MAT 240B\allolib_playground\al_ext\statedistribution\src\al_CuttleboneDomain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Code\MAT 240B\allolib_playground\al_ext\statedistribution\al_CuttleboneStateSimulationDomain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Code\MAT 240B\allolib_playground\al_ext\statedistribution\al_CuttleboneDomain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Code\MAT 240B\allolib_playground\al_ext\statedistribution\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="C:\Code\MAT 240B\allolib_playground\allolib\external\json\nlohmann_json.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{1EB82E8C-A834-3713-96A4-61ABFA28BF8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4B9BD26C-32F8-36A8-8EF2-AB7697F091EB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
