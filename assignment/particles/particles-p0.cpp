@@ -141,15 +141,25 @@ struct AlloApp : App {
 
     // drag
 
-	auto getForce = [](vector<Vec3f>::iterator &A, vector<Vec3f>::iterator &B, int &IndA, int &IndB, float &force, string &type, string &forceType) {
+	auto getForce = [](vector<Vec3f>::iterator &A, vector<Vec3f>::iterator &B, int &IndA, int &IndB, float &force, string &typeA, string &typeB, string &forceType) {
 		int magnifier = 1;
 		// there are special magnifier rules for life
-		if (type.compare("life") == 0) {
-			if (forceType.compare("gravity") == 0) {
-				magnifier = 5;
+		if (typeA.compare("life") == 0) {
+			if (typeB.compare("life") == 0) {
+				if (forceType.compare("gravity") == 0) {
+					magnifier = 0;
+				}
+				if (forceType.compare("hookes") == 0) {
+					magnifier = -50;
+				}
 			}
-			if (forceType.compare("hookes") == 0) {
-				magnifier = 10;
+			else {
+				if (forceType.compare("gravity") == 0) {
+					magnifier = 5;
+				}
+				if (forceType.compare("hookes") == 0) {
+					magnifier = 10;
+				}
 			}
 		}
 		return (*B - *A).normalize(magnifier * force);
@@ -169,14 +179,14 @@ struct AlloApp : App {
 				// apply hooke's force
 				if (distance > relaxedDistance && distance < attachmentThreshold) { // if things are close enough to attach to one another
 					float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
-					acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, string("hookes")); // and apply it
-					acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, string("hookes"));
+					acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, thatType, string("hookes")); // and apply it
+					acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, itType, string("hookes"));
 				}
 
 				// apply gravity force
 				float gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 2)); // calc gravity force
-				acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, string("gravity")) / mass[itInd];
-				acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, string("gravity")) / mass[thatInd];
+				acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, thatType, string("gravity")) / mass[itInd];
+				acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, thatType, string("gravity")) / mass[thatInd];
 			}
 		}
 
