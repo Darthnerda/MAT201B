@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D92D529D-1A88-3631-BC23-E7F8591EB1BD}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Code\allolib_playground\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Code/allolib_playground/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Code/allolib_playground -BC:/Code/allolib_playground/Darthnerda_201B/assignment/particles/build/particles-p0/Release --check-stamp-file C:/Code/allolib_playground/Darthnerda_201B/assignment/particles/build/particles-p0/Release/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeCCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeCXXCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeRCCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Code/allolib_playground/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Code/allolib_playground -BC:/Code/allolib_playground/Darthnerda_201B/assignment/particles/build/particles-p0/Release --check-stamp-file C:/Code/allolib_playground/Darthnerda_201B/assignment/particles/build/particles-p0/Release/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeCCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeCXXCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeRCCompiler.cmake;C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\3.16.2\CMakeSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.16\Modules\Platform\WindowsPaths.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\ZERO_CHECK.vcxproj">
+      <Project>{FB6F22BE-E28D-3C14-B568-B45FF372DB54}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\Gamma\Gamma.vcxproj">
+      <Project>{BAEC402A-3C22-39B7-A593-8B78C12A5333}</Project>
+      <Name>Gamma</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\al.vcxproj">
+      <Project>{1206C758-4238-307D-AD05-32506C8E3740}</Project>
+      <Name>al</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\al_ext\openvr\al_openvr.vcxproj">
+      <Project>{13656372-B293-3A61-B22F-9FF20A78FE36}</Project>
+      <Name>al_openvr</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\al_ext\soundfile\al_soundfile.vcxproj">
+      <Project>{BD5BDD39-5574-3467-AC90-4E0893109E9A}</Project>
+      <Name>al_soundfile</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\al_ext\statedistribution\al_statedistribution.vcxproj">
+      <Project>{EE33960A-F92E-323A-84CF-4AFAC13CAF5B}</Project>
+      <Name>al_statedistribution</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\glad\glad.vcxproj">
+      <Project>{5E915785-2A13-300E-A6DB-EA82990D0FE4}</Project>
+      <Name>glad</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\glfw\src\glfw.vcxproj">
+      <Project>{2FBBEA50-7005-35F4-8E4C-149AA4ED6223}</Project>
+      <Name>glfw</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\imgui.vcxproj">
+      <Project>{2597DD44-2817-3EC5-91B9-60055228E055}</Project>
+      <Name>imgui</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\oscpack.vcxproj">
+      <Project>{1000DC7F-A8A3-3D6F-936D-5DC8510F1E5C}</Project>
+      <Name>oscpack</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\Darthnerda_201B\assignment\particles\build\particles-p0\Release\particles-p0.vcxproj">
+      <Project>{21399958-DBB4-3EB8-8775-9D57E6951F79}</Project>
+      <Name>particles-p0</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\rtaudio\rtaudio.vcxproj">
+      <Project>{E5DF0658-18DD-3F40-B504-3183A9B09020}</Project>
+      <Name>rtaudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\rtmidi\rtmidi.vcxproj">
+      <Project>{E84E9995-54A4-3DB6-9FA3-946374BAC564}</Project>
+      <Name>rtmidi</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Code\allolib_playground\allolib\build\external\serial.vcxproj">
+      <Project>{7C64EE9C-EEBA-3CAE-8F35-B2B576B67FE9}</Project>
+      <Name>serial</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

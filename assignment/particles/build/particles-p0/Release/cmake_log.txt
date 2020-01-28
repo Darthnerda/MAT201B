@@ -1,0 +1,17 @@
+-- Selecting Windows SDK version 10.0.17763.0 to target Windows 10.0.18362.
+-- ==== Configuring Gamma.
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+-- Found SNDFILE 
+-- libsndfile: C:/Program Files/Mega-Nerd/libsndfile/lib/libsndfile-1.lib
+-- threading: 
+-- Using Win32 for window creation
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+-- Compiling with support for: wasapi
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+-- Compiling with support for: winmm
+-- Using the single-header code from C:/Code/allolib_playground/allolib/external/json/single_include/
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE) 
+-- Using libsndfile: C:/Program Files/Mega-Nerd/libsndfile/lib/libsndfile-1.lib
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Code/allolib_playground/Darthnerda_201B/assignment/particles/build/particles-p0/Release
