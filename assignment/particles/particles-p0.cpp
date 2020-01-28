@@ -163,41 +163,15 @@ struct AlloApp : App {
 			int thatInd = that - mesh.vertices().begin();
 			// apply all interactivities
 			if (thatInd > itInd) {
-				//cout << to_string(itInd) << " " << to_string(thatInd) << endl;
-				//cout << to_string(itInd) << " " << to_string(thatInd) << endl;
 				float distance = dist(*it, *that);
-				//cout << "buzz" << endl;
-				//cout << "calculated distance for " << to_string(itInd) << " and " << to_string(thatInd) << endl;
 				string thatType = types[thatInd];
 
-				//if(!attachments[itInd][thatInd]) { // if they're not attached
-				//	if (distance < attachmentThreshold && distance > relaxedDistance) { // and they're within a threshold of distance
-				//		if (rnd::uniform() > 0.65) { // and they pass a randomness check
-				//			//cout << "attached " << to_string(itInd) << " and " << to_string(thatInd) << endl;
-				//			attachments[itInd][thatInd] = true; // set them to be attached
-				//		}
-				//	}
-				//}
-
-				// apply the hook force if applicable
-				//if (attachments[itInd][thatInd]) { // if they are attached
-				//	float relaxedDistance = 0.005;
-				//	if (distance < relaxedDistance) { // and they are within the relaxed distance
-				//		attachments[itInd][thatInd] = false; // set them to be detached
-				//	}
-				//	else { // otherwise
-				//		float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
-				//		acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, string("hookes")); // and apply it
-				//		acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, string("hookes"));
-				//	}
-				//}
-
-				if (distance > relaxedDistance && distance < attachmentThreshold) {
+				// apply hooke's force
+				if (distance > relaxedDistance && distance < attachmentThreshold) { // if things are close enough to attach to one another
 					float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
 					acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, string("hookes")); // and apply it
 					acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, string("hookes"));
 				}
-
 
 				// apply gravity force
 				float gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 2)); // calc gravity force
