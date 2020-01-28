@@ -16,7 +16,7 @@ string slurp(string fileName);  // forward declaration
 
 struct AlloApp : App {
   // add more GUI here
-  Parameter pointSize{"/pointSize", "", 1.0, "", 0.0, 2.0};
+  Parameter pointSize{"/pointSize", "", 0.473, "", 0.0, 2.0};
   Parameter timeStep{"/timeStep", "", 0.1, "", 0.01, 0.6};
   Parameter gravityMultiplier{ "/gravityConstant", "", 1.0, "", 0.0, 6.0 };
   Parameter relaxedDistance{ "/relaxedDistance", "", 0.005, "", 0.001, 0.009 };
@@ -76,13 +76,13 @@ struct AlloApp : App {
 	  float m;
 	  if (r < 0.96) {
 		  t = "celestial";
-		  mesh.color(HSV(rnd::uniform() * 0.10f, rnd::uniform() * 0.6f + 0.1f, rnd::uniform() * 0.8f + 0.2f));
+		  mesh.color(HSV(rnd::uniform() * 0.10f + (rnd::uniform() > 0.5 ? 0.5 : 0), rnd::uniform() * 0.3f + 0.1f, rnd::uniform() * 0.6f + 0.4f));
 		  m = 10 + rnd::normal() / 1.5f; // so lets say that m is in suns
 		  if (m < 0.5) m = 0.5;
 	  }
 	  else {
 		  t = "life";
-		  mesh.color(HSV(0.27f, rnd::uniform(), 1.0f));
+		  mesh.color(HSV(0.27f, rnd::uniform() * 0.4 + 0.4, 1.0f));
 		  m = 1 + rnd::normal() / 2; // so lets say that m is in suns
 		  if (m < 0.1) m = 0.1;
 	  }
@@ -101,25 +101,6 @@ struct AlloApp : App {
       acceleration.push_back(rv(1));
     }
 
-	// allocate space for the attachments truth pool's first indice
-	//attachments.resize(mesh.vertices().size());
-
-	// initialize the attachments truth pool to false 
-	cout << "foo" << endl;
-	//for (vector<Vec3f>::iterator it = mesh.vertices().begin(); it != mesh.vertices().end(); ++it) {
-	//	int itInd = it - mesh.vertices().begin();
-	//	// allocate space for the attachments truth pool's second indice
-	//	attachments[itInd].resize(mesh.vertices().size()-itInd);
-	//	for (vector<Vec3f>::iterator that = mesh.vertices().begin(); that != mesh.vertices().end(); ++that) {
-	//		int thatInd = that - mesh.vertices().begin();
-	//		if (thatInd > itInd) {
-	//			attachments[itInd][thatInd] = false;
-	//		}
-	//	}
-	//}
-
-	cout << "bar" << endl;
-
     nav().pos(0, 0, 10);
   }
 
@@ -130,17 +111,7 @@ struct AlloApp : App {
     // ignore the real dt and set the time step;
     dt = timeStep;
 
-    // Calculate forces
-
-    // pair-wise and equal but opposite
-    // nested for loop to visit each pair once
-    // O(n*n)
-    //
-
-
-
-    // drag
-
+    // Generic force modifier lambda
 	auto getForce = [](vector<Vec3f>::iterator &A, vector<Vec3f>::iterator &B, int &IndA, int &IndB, float &force, string &typeA, string &typeB, string &forceType) {
 		int magnifier = 1;
 		// there are special magnifier rules for life
@@ -169,25 +140,23 @@ struct AlloApp : App {
 	for (vector<Vec3f>::iterator it = mesh.vertices().begin(); it != mesh.vertices().end(); ++it) {
 		int itInd = it - mesh.vertices().begin();
 		string itType = types[itInd];
-		for (vector<Vec3f>::iterator that = mesh.vertices().begin(); that != mesh.vertices().end(); ++that) {
+		for (vector<Vec3f>::iterator that = mesh.vertices().begin() + itInd + 1; that != mesh.vertices().end(); ++that) {
 			int thatInd = that - mesh.vertices().begin();
 			// apply all interactivities
-			if (thatInd > itInd) {
-				float distance = dist(*it, *that);
-				string thatType = types[thatInd];
+			float distance = dist(*it, *that);
+			string thatType = types[thatInd];
 
-				// apply hooke's force
-				if (distance > relaxedDistance && distance < attachmentThreshold) { // if things are close enough to attach to one another
-					float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
-					acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, thatType, string("hookes")); // and apply it
-					acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, itType, string("hookes"));
-				}
-
-				// apply gravity force
-				float gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 2)); // calc gravity force
-				acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, thatType, string("gravity")) / mass[itInd];
-				acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, thatType, string("gravity")) / mass[thatInd];
+			// apply hooke's force
+			if (distance > relaxedDistance && distance < attachmentThreshold) { // if things are close enough to attach to one another
+				float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
+				acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, thatType, string("hookes")); // and apply it
+				acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, itType, string("hookes"));
 			}
+
+			// apply gravity force
+			float gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 2)); // calc gravity force
+			acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, thatType, string("gravity")) / mass[itInd];
+			acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, thatType, string("gravity")) / mass[thatInd];
 		}
 
 		// apply all global forces
