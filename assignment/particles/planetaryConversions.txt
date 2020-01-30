@@ -1,0 +1,54 @@
+All 10 ^ -17
+
+
+
+Earth: 5,972,000,000,000,000,000,000,000‬ kg
+          1   2   3   4   5   6   7   8
+59.72 gigaG (10 ^ -17)
+
+Sun: 1,989,000,000,000,000,000,000,000,000,000 kg
+        1   2   3   4   5   6   7   8   9   10
+19,890,000 gigaG (10 ^ -17)
+
+
+Moon: 73,460,000,000,000,000,000,000 kg
+          1   2   3   4   5   6   7
+0.73460 gigaG (10 ^ -17)
+
+
+
+
+(m gigaG * m gigaG ) / r micrometers ^ 2
+
+F = gigaG/micrometers
+
+A = F gigaG/micrometers / m gigaG
+
+A = micrometers
+
+A' = micrometers / 1 day ( 60 * 60 * 24.25 = 87,300)
+
+
+Earth Speed: 29.78 km/s
+0.0000000000000002978 km /s (10 ^ -17)
+0.0000000002978 mm /s
+0.02599794 micrometers / day
+
+Moon Speed: 1.022 km/s
+0.00000000000000001022 km / s (10 ^ -17)
+0.00000000000001022 m / s
+0.00000000001022 mm / s
+0.00000001022 micrometers / s
+0.000892206‬ micrometers / day
+
+
+Distance Earth - Sun: 147,330,000 km
+0.00000014733 km (10 ^ -17)
+1.4733 micrometers
+
+Distance Earth - Moon: 384,400 km
+0.00000000000384400 km (10 ^ -17)
+0.003844 micrometers
+
+Distance Sun - Moon
+1.477144‬ micrometers

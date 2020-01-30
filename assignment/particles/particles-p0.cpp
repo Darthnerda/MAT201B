@@ -8,17 +8,18 @@ using namespace al;
 #include <vector>
 using namespace std;
 
-Vec3f rv(float scale) {
-  return Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS()) * scale;
+Vec3d rv(float scale) {
+  //return Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS()) * scale;
+	return Vec3d(rnd::normal(), rnd::normal(), rnd::normal()) * scale;
 }
 
 string slurp(string fileName);  // forward declaration
 
 struct AlloApp : App {
   // add more GUI here
-  Parameter pointSize{"/pointSize", "", 0.473, "", 0.0, 2.0};
-  Parameter timeStep{"/timeStep", "", 0.1, "", 0.01, 0.6};
-  Parameter gravityMultiplier{ "/gravityConstant", "", 1.0, "", 0.0, 6.0 };
+  Parameter pointSize{"/pointSize", "", 10.0, "", 0.0, 40.0};
+  Parameter timeStep{"/timeStep", "", 0.1, "", 0.01, 20.0};
+  Parameter gravityMultiplier{ "/gravityMultiplier", "", 1.0, "", 0.0, 6.0 };
   Parameter relaxedDistance{ "/relaxedDistance", "", 0.005, "", 0.001, 0.009 };
   Parameter stiffness{ "/stiffness", "", 6.0, "", 0.0, 20.0 };
   Parameter attachmentThreshold{ "/attachmentThreshold", "", 0.05, "", 0.01, 0.09 };
@@ -32,21 +33,18 @@ struct AlloApp : App {
   // typedef std::vector<Vec3f> Vertices;
 
   // simulation constants
-  const float GRAV_CONST = 0.00006674301; // removing 6 orders of magnitude to adjust for sun mass
+  const double GRAV_CONST = 1.6718705213575e+7; // in AU ^ 3 / solar mass * day ^ 2
 
   //  simulation state
   vector<Vec3f> velocity;
   vector<Vec3f> acceleration;
-  vector<float> mass;
+  vector<double> mass;
   vector<string> types;
   // attachments: first indice corresponds to the source entity, second indice corresponds to the target entity, both together return a bool of whether or not they connect
   //vector<vector<bool>> attachments;
 
   // simulation options
   bool drag = false;
-
-  // state pool
-  vector<vector<float>> distances;
 
   void onCreate() override {
     // add more GUI here
@@ -66,25 +64,44 @@ struct AlloApp : App {
     auto rc = []() { return HSV(rnd::uniform(), 1.0f, 1.0f); };
 
     mesh.primitive(Mesh::POINTS);
-    // does 1000 work on your system? how many can you make before you get a low
+    
+	/*
+	// does 1000 work on your system? how many can you make before you get a low
     // frame rate? do you need to use <1000?
-    for (int _ = 0; _ < 1000; _++) {
-      mesh.vertex(rv(5));
+    for (int _ = 0; _ < 200; _++) {
 	  // add entity type
 	  float r = rnd::uniform();
 	  string t;
 	  float m;
-	  if (r < 0.96) {
-		  t = "celestial";
-		  mesh.color(HSV(rnd::uniform() * 0.10f + (rnd::uniform() > 0.5 ? 0.5 : 0), rnd::uniform() * 0.3f + 0.1f, rnd::uniform() * 0.6f + 0.4f));
-		  m = 10 + rnd::normal() / 1.5f; // so lets say that m is in suns
+	  if (r < 0.01) { // stars
+		  t = "star";
+		  mesh.vertex(rv(40));
+		  mesh.color(HSV(rnd::uniform() * 0.10f + (rnd::uniform() > 0.5 ? 0.5 : 0), rnd::uniform() * 0.5f + 0.2f, rnd::uniform() * 0.3f + 0.7f));
+		  m = 1 + rnd::normal() * 1000.0f; // so lets say that m is in decisuns
 		  if (m < 0.5) m = 0.5;
+
+		  velocity.push_back(rv(0.05));
+		  acceleration.push_back(rv(0.05));
 	  }
-	  else {
+	  if (r >= 0.01 && r < 0.96) { // planets
+		  t = "planet";
+		  mesh.vertex(rv(20));
+		  mesh.color(HSV(rnd::uniform() * 0.023f + 0.027, rnd::uniform() * 0.2f + 0.1f, rnd::uniform() * 0.30f + 0.25f));
+		  m = 3 + rnd::normal(); // so lets say that m is in decisuns
+		  if (m < 0.5) m = 0.5;
+
+		  velocity.push_back(rv(0.1));
+		  acceleration.push_back(rv(0.1));
+	  }
+	  if (r >= 0.96) { // life
 		  t = "life";
+		  mesh.vertex(rv(20));
 		  mesh.color(HSV(0.27f, rnd::uniform() * 0.4 + 0.4, 1.0f));
-		  m = 1 + rnd::normal() / 2; // so lets say that m is in suns
+		  m = 0.05 + rnd::normal() / 4; // so lets say that m is in decisuns
 		  if (m < 0.1) m = 0.1;
+
+		  velocity.push_back(rv(0.1));
+		  acceleration.push_back(rv(0.1));
 	  }
 	  types.push_back(t);
       // float m = rnd::uniform(3.0, 0.5);
@@ -94,12 +111,61 @@ struct AlloApp : App {
       // using a simplified volume/size relationship
       //mesh.texCoord(pow(m, 1.0f / 3), 0);  // s, t
 	  // modified volume/size relationship
-	  mesh.texCoord(pow(m, 1.0f / 2), 0);  // s, t
+	  mesh.texCoord(pow(m, 1.0f / 3), 0);  // s, t
 
       // separate state arrays
-      velocity.push_back(rv(0.1));
-      acceleration.push_back(rv(1));
+      
     }
+	*/
+
+	double m;
+
+	// spawn sun
+	mesh.vertex(Vec3f(0,0,0));
+	mesh.color(HSV(rnd::uniform() * 0.10f + (rnd::uniform() > 0.5 ? 0.5 : 0), rnd::uniform() * 0.5f + 0.2f, rnd::uniform() * 0.3f + 0.7f));
+	types.push_back("star");
+	m = 1;
+	mass.push_back(m);
+	//mesh.texCoord(pow(m, 1.0f / 3), 0);
+	mesh.texCoord(1, 0);
+	velocity.push_back(Vec3f(0,0,0));
+	acceleration.push_back(Vec3f(0,0,0));
+
+
+	// spawn earth
+	mesh.vertex(Vec3f(1, 0, 0)); // in astronomical units
+	mesh.color(HSV(rnd::uniform() * 0.023f + 0.027, rnd::uniform() * 0.2f + 0.1f, rnd::uniform() * 0.30f + 0.25f));
+	types.push_back("planet");
+	m = 3.00348959632e-6; // in solar mass
+	mass.push_back(m); 
+	//mesh.texCoord(pow(m, 1.0f / 3), 0);
+	mesh.texCoord(1, 0);
+	velocity.push_back(Vec3f(0, 1.719914438502673e-2, 0)); // in AU / day
+	acceleration.push_back(Vec3f(0, 1, 0));
+
+	// spawn many earth-like planets
+	for (int _ = 0; _ < 20; _++) {
+		mesh.vertex(Vec3f(rnd::uniform() * 0.1 + 1, 0, 0)); // in astronomical units
+		mesh.color(HSV(rnd::uniform() * 0.023f + 0.027, rnd::uniform() * 0.2f + 0.1f, rnd::uniform() * 0.30f + 0.25f));
+		types.push_back("planet");
+		m = rnd::uniform() * 1e-6 + 3.00348959632e-6; // in solar mass
+		mass.push_back(m);
+		//mesh.texCoord(pow(m, 1.0f / 3), 0);
+		mesh.texCoord(1, 0);
+		velocity.push_back(Vec3f(0, rnd::uniform() * 0.3e-2 + 1.719914438502673e-2, 0)); // in AU / day
+		acceleration.push_back(Vec3f(0, 1, 0));
+	}
+
+	// spawn moon
+	mesh.vertex(Vec3f(1.00256951871657754, 0, 0));
+	mesh.color(HSV(rnd::uniform() * 0.023f + 0.027, rnd::uniform() * 0.2f + 0.1f, rnd::uniform() * 0.30f + 0.25f));
+	types.push_back("planet");
+	m = 3.694329684197e-8; // in solar mass
+	mass.push_back(m);
+	//mesh.texCoord(pow(m, 1.0f / 3), 0);
+	mesh.texCoord(1, 0);
+	velocity.push_back(Vec3f(0, 5.902459893048128342e-4, 0));
+	acceleration.push_back(Vec3f(0, 1, 0));
 
     nav().pos(0, 0, 10);
   }
@@ -112,7 +178,7 @@ struct AlloApp : App {
     dt = timeStep;
 
     // Generic force modifier lambda
-	auto getForce = [](vector<Vec3f>::iterator &A, vector<Vec3f>::iterator &B, int &IndA, int &IndB, float &force, string &typeA, string &typeB, string &forceType) {
+	auto getForce = [](vector<Vec3f>::iterator &A, vector<Vec3f>::iterator &B, int &IndA, int &IndB, double &force, string &typeA, string &typeB, string &forceType) {
 		int magnifier = 1;
 		// there are special magnifier rules for life
 		if (typeA.compare("life") == 0) {
@@ -124,15 +190,42 @@ struct AlloApp : App {
 					magnifier = -50;
 				}
 			}
-			else {
+			if (typeB.compare("planet") == 0) {
 				if (forceType.compare("gravity") == 0) {
-					magnifier = 5;
+					magnifier = 0;
 				}
 				if (forceType.compare("hookes") == 0) {
-					magnifier = 10;
+					magnifier = 100;
+				}
+			}
+			if (typeB.compare("star") == 0) {
+				if (forceType.compare("gravity") == 0) {
+					magnifier = 1;
+				}
+				if (forceType.compare("hookes") == 0) {
+					magnifier = 1;
 				}
 			}
 		}
+		else {
+			if (typeB.compare("life") == 0) {
+				if (forceType.compare("gravity") == 0) {
+					magnifier = 0;
+				}
+				if (forceType.compare("hookes") == 0) {
+					magnifier = 0;
+				}
+			}
+			else {
+				if (forceType.compare("gravity") == 0) {
+					magnifier = 1;
+				}
+				if (forceType.compare("hookes") == 0) {
+					magnifier = 0;
+				}
+			}
+		}
+
 		return (*B - *A).normalize(magnifier * force);
 	};
 	
@@ -143,20 +236,20 @@ struct AlloApp : App {
 		for (vector<Vec3f>::iterator that = mesh.vertices().begin() + itInd + 1; that != mesh.vertices().end(); ++that) {
 			int thatInd = that - mesh.vertices().begin();
 			// apply all interactivities
-			float distance = dist(*it, *that);
+			double distance = dist(*it, *that);
 			string thatType = types[thatInd];
 
 			// apply hooke's force
 			if (distance > relaxedDistance && distance < attachmentThreshold) { // if things are close enough to attach to one another
-				float hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
-				acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, thatType, string("hookes")); // and apply it
-				acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, itType, string("hookes"));
+				double hookesForce = stiffness * (distance - relaxedDistance);// calc hook's force
+				acceleration[itInd] += getForce(it, that, itInd, thatInd, hookesForce, itType, thatType, string("hookes")) / mass[itInd]; // and apply it ( * 1000 for kiloSeconds)
+				acceleration[thatInd] += getForce(that, it, thatInd, itInd, hookesForce, thatType, itType, string("hookes")) / mass[thatInd];
 			}
 
 			// apply gravity force
-			float gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 2)); // calc gravity force
-			acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, thatType, string("gravity")) / mass[itInd];
-			acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, thatType, string("gravity")) / mass[thatInd];
+			double gravForce = gravityMultiplier * GRAV_CONST * ((mass[itInd] * mass[thatInd]) / pow(distance, 1.5)); // calc gravity force
+			acceleration[itInd] += getForce(it, that, itInd, thatInd, gravForce, itType, thatType, string("gravity")) / (mass[itInd] * 1000000000);
+			acceleration[thatInd] += getForce(that, it, thatInd, itInd, gravForce, thatType, thatType, string("gravity")) / (mass[thatInd] * 1000000000);
 		}
 
 		// apply all global forces
@@ -181,13 +274,15 @@ struct AlloApp : App {
     vector<Vec3f>& position(mesh.vertices());
     for (int i = 0; i < velocity.size(); i++) {
       // "backward" Euler integration
-      velocity[i] += acceleration[i] / mass[i] * dt;
+      velocity[i] += acceleration[i] * dt;
       position[i] += velocity[i] * dt;
 
       // Explicit (or "forward") Euler integration would look like this:
       // position[i] += velocity[i] * dt;
       // velocity[i] += acceleration[i] / mass[i] * dt;
     }
+
+	cout << velocity[1] << " " << acceleration[1] << " " << mesh.vertices()[1] << endl;
 
     // clear all accelerations (IMPORTANT!!)
     for (auto& a : acceleration) a.zero();
