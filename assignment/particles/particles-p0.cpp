@@ -167,6 +167,19 @@ struct AlloApp : App {
 	velocity.push_back(Vec3f(0, 5.902459893048128342e-4, 0));
 	acceleration.push_back(Vec3f(0, 1, 0));
 
+	// spawn many moon-like planets
+	for (int _ = 0; _ < 200; _++) {
+		mesh.vertex(Vec3f(rnd::uniform() * 0.1 + 1.00256951871657754, 0, 0)); // in astronomical units
+		mesh.color(HSV(rnd::uniform() * 0.023f + 0.027, rnd::uniform() * 0.2f + 0.1f, rnd::uniform() * 0.30f + 0.25f));
+		types.push_back("planet");
+		m = rnd::uniform() * 1e-6 + 3.694329684197e-8; // in solar mass
+		mass.push_back(m);
+		//mesh.texCoord(pow(m, 1.0f / 3), 0);
+		mesh.texCoord(1, 0);
+		velocity.push_back(Vec3f(0, rnd::uniform() * 0.3e-4 + 5.902459893048128342e-4, 0)); // in AU / day
+		acceleration.push_back(Vec3f(0, 1, 0));
+	}
+
     nav().pos(0, 0, 10);
   }
 
