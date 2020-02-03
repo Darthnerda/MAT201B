@@ -5,34 +5,45 @@ All 10 ^ -17
 Earth: 5,972,000,000,000,000,000,000,000‬ kg
           1   2   3   4   5   6   7   8
 59.72 gigaG (10 ^ -17)
+3.04043263333e-16 (in solar mass)
+
+
 
 Sun: 1,989,000,000,000,000,000,000,000,000,000 kg
         1   2   3   4   5   6   7   8   9   10
 19,890,000 gigaG (10 ^ -17)
+1 (in solar mass)
 
 
 Moon: 73,460,000,000,000,000,000,000 kg
           1   2   3   4   5   6   7
 0.73460 gigaG (10 ^ -17)
+3.694329684197e-8 (in solar mass)
 
 
 
+G kg / m day * (m gigaG * m gigaG ) / r micrometers ^ 2        1,000,000‬ micrometers * 1kg / 1,000,000 gigaG * 1m * 1 day = kg / m day
 
-(m gigaG * m gigaG ) / r micrometers ^ 2
+giga = 1000000000 * m
+micro = 0.000001 * m
 
-F = gigaG/micrometers
+F = kg / m day
 
-A = F gigaG/micrometers / m gigaG
+A = F kg/m day / M gigaG        1 m / 1,000,000 micrometers * 1 gigaG / 1,000 kg
 
 A = micrometers
 
-A' = micrometers / 1 day ( 60 * 60 * 24.25 = 87,300)
+A' = micrometers
 
+Gravitational Constant: 0.000000000066743015
+0.0000058266652095 kg / m days
+1.6718705213575e+7 (in astronomical units ^3 / solar mass * days ^ 2)
 
 Earth Speed: 29.78 km/s
 0.0000000000000002978 km /s (10 ^ -17)
 0.0000000002978 mm /s
 0.02599794 micrometers / day
+1.71991443850267379e-2 AU / day
 
 Moon Speed: 1.022 km/s
 0.00000000000000001022 km / s (10 ^ -17)
@@ -40,15 +51,19 @@ Moon Speed: 1.022 km/s
 0.00000000001022 mm / s
 0.00000001022 micrometers / s
 0.000892206‬ micrometers / day
+5.902459893048128342e-4 AU / day
 
 
 Distance Earth - Sun: 147,330,000 km
 0.00000014733 km (10 ^ -17)
 1.4733 micrometers
+1 AU
 
 Distance Earth - Moon: 384,400 km
 0.00000000000384400 km (10 ^ -17)
 0.003844 micrometers
+0.00256951871657754 AU
 
 Distance Sun - Moon
 1.477144‬ micrometers
+1.00256951871657754 AU
