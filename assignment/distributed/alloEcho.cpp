@@ -4,9 +4,50 @@
 #include "al/ui/al_Parameter.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 #include "al/spatial/al_HashSpace.hpp"
+
+#include "Darthnerda/assignment/distributed/libfreenect/include/libfreenect.h"
+#include "Darthnerda/assignment/distributed/libfreenect/wrappers/c_sync/libfreenect_sync.h"
+
+#if defined(__APPLE__)
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
 using namespace al;
 using namespace std;
 #include <vector>
+
+/*
+void no_kinect_quit(void)
+{
+    printf("Error: Kinect not connected?\n");
+    exit(1);
+}
+
+// figuring out libfreenect
+void DrawGLScene() {
+    short *depth = 0;
+    char *rgb = 0;
+    uint32_t ts;
+    if (freenect_sync_get_depth((void**)&depth, &ts, 0, FREENECT_DEPTH_11BIT) < 0)
+	no_kinect_quit();
+    if (freenect_sync_get_video((void**)&rgb, &ts, 0, FREENECT_VIDEO_RGB) < 0)
+	no_kinect_quit();
+
+    static unsigned int indices[480][640];
+    static short xyz[480][640][3];
+    int i,j;
+    for (i = 0; i < 480; i++) {
+        for (j = 0; j < 640; j++) {
+            xyz[i][j][0] = j;
+            xyz[i][j][1] = i;
+            xyz[i][j][2] = depth[i*640+j];
+            indices[i][j] = i*640+j;
+        }
+    }
+}
+*/
 
 string slurp(string fileName);
 
@@ -15,16 +56,21 @@ struct ShareAgent {
   al::Color col;
 };
 
-HashSpace space(6, 10000);
+const int trailLength = 40;
+unsigned trailIdx = 0;
+const int N = 6000;
+HashSpace space(4, N);
 unsigned maxradius = space.maxRadius();
-HashSpace::Query qmany(500);
+HashSpace::Query qmany(100);
+float floatDim = (float)space.dim();
+Vec3f center = Vec3f(space.dim()/2, space.dim()/2, space.dim()/2);
 
-const int N = 10000;
+
 struct SharedState {
   ShareAgent agent[N];
 };
 
-enum AgentType {BOID, NOTBOID};
+enum AgentType {BOID, THREEDVIDEO};
 
 struct Agent {
 	Vec3f velocity;
@@ -37,18 +83,20 @@ Vec3f boidForce(auto context, float distance, Vec3f vec2mid, Agent A, Agent B);
 
 struct MyApp : public DistributedAppWithState<SharedState> {
   Mesh mesh;
+  Mesh trails[N];
+  Mesh sphere;
 
   // simulation state
   Agent agents[N];
 
-  Parameter timeStep{ "/timeStep", "", 0.01, "", 0.0000001, 1.0 };
+  Parameter timeStep{ "/timeStep", "", 0.08, "", 0.0000001, 0.1 };
   Parameter pointSize{ "/pointSize", "", 1.0, "", 0.0, 40.0 };
-  Parameter sepDistThresh{ "/sepDistThresh","",0.3,"",0.01,0.9 };
-  Parameter cohDistThresh{ "/cohDistThresh","",0.5,"",0.01,0.9 };
-  Parameter alignDistThresh{ "/alignDistThresh","",0.5,"",0.01,0.9 };
-  Parameter cohesionModifier{ "/cohesionModifier","",0.6,"",0.1,10 };
-  Parameter separationModifier{ "/separationModifier","",0.6,"",0.1,10 };
-  Parameter alignmentModifier{ "/alignmentModifier","",1.6,"",0,10 };
+  Parameter sepDistThresh{ "/sepDistThresh","",0.01,"",0.00001,1.0 };
+  Parameter cohDistThresh{ "/cohDistThresh","",0.13,"",0.000001,1.0 };
+  Parameter alignDistThresh{ "/alignDistThresh","",0.01,"",0.000001,1.0 };
+  Parameter cohesionModifier{ "/cohesionModifier","",0.60,"",0.1,10 };
+  Parameter separationModifier{ "/separationModifier","",0.7,"",0.1,10 };
+  Parameter alignmentModifier{ "/alignmentModifier","",0.96,"",0,10 };
   
   ControlGUI gui;
   ShaderProgram pointShader; 
@@ -56,7 +104,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   std::shared_ptr<CuttleboneStateSimulationDomain<SharedState>> cuttleboneDomain;
 
   void onCreate() override {
-        // load cuttleboan
+	// load cuttleboan
 	cuttleboneDomain = CuttleboneStateSimulationDomain<SharedState>::enableCuttlebone(this);
 	if(!cuttleboneDomain){
 		std::cerr << "ERROR: Could not start Cuttlebone. Quitting." << std::endl;
@@ -77,14 +125,16 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 
 	// prep navigation stuff
 	navControl().useMouse(false);
-	nav().pos(0, 0, 10);
+	nav().pos(center);
 
 	// initialize all the agents
 	mesh.primitive(Mesh::POINTS);
 	for (unsigned id = 0; id < N; id++) {
 		if(cuttleboneDomain->isSender()){
-			space.move(id, space.dim() * rnd::uniform(), space.dim() * rnd::uniform(), space.dim() * rnd::uniform());
+			Vec3f initialPos = Vec3f(rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1).normalize(rnd::uniform() * maxradius) + center;
+			space.move(id, initialPos);
 			HashSpace::Object& o = space.object(id);
+			//cout << o.pos << endl;
 			mesh.vertex(o.pos);
 			mesh.color(0, 1, 0);
 			
@@ -93,8 +143,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			agents[id].acceleration = Vec3f(0,0,0);
 			agents[id].agentType = BOID;
 
-			mesh.texCoord(pow(agents[id].mass,1/3), 0);	}
-		else{
+			mesh.texCoord(pow(agents[id].mass,1/3), 0);
+
+			for (unsigned j = 0; j < trailLength; j++) {
+				trails[id].vertex(0,0,0);
+			}
+		}else{
 			mesh.vertex(0,0,0);
 			mesh.color(0,1,0);
 		}
@@ -109,37 +163,63 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		  vector<Vec3f>& position(mesh.vertices());
 		  vector<al::Color>& colors(mesh.colors());
 		  for (unsigned id = 0; id < N; id++) {
-		  	HashSpace::Object& o = space.object(id);
+		  	if (agents[id].agentType == THREEDVIDEO) {
+				for (unsigned i = 0; i < 480; i++) {
+					for (unsigned j = 0; j < 640; j++) {
+						//xyz[i][j]
+					}
+				}
+			}
+			HashSpace::Object& o = space.object(id);
 			qmany.clear();
-			int cohesionMates = qmany(space, o.pos, cohDistThresh);
+			int flockMates = qmany(space, o.pos, cohDistThresh * space.dim());
 			Vec3f boidForce = Vec3f(0,0,0);
-			for(unsigned i = 0; i < cohesionMates; i++) {			
-				Vec3f vec2mid = (qmany[i]->pos - o.pos) / 2;
+			for(unsigned i = 1; i < flockMates; i++) {			
+				Vec3f vec2other = qmany[i]->pos - o.pos;
+				Vec3f vec2mid = vec2other / 2;
 				boidForce += vec2mid * cohesionModifier;
-			}
-			qmany.clear();
-			int separationMates = qmany(space, o.pos, cohDistThresh);
-			for(unsigned i = 0; i < separationMates; i++) {	
-				Vec3f vec2mid = (qmany[i]->pos - o.pos) / 2;
-				boidForce -= vec2mid * separationModifier;
-			}
-			qmany.clear();
-			int alignmentMates = qmany(space, o.pos, alignDistThresh);
-			for(unsigned i = 0; i < alignmentMates; i++) {	
+				boidForce -= vec2other * separationModifier;
 				Agent& B = agents[qmany[i]->id];
 				Agent& A = agents[id];
-				boidForce += (B.velocity.normalized() - A.velocity.normalized()).normalize(alignmentModifier);
+				Vec3f force = Vec3f((B.velocity - A.velocity).normalize(alignmentModifier));
+				boidForce += force;
+				//if (id == 0) {cout << qmany[i]->id << endl;}
 			}
 			agents[id].acceleration += boidForce / agents[id].mass;
 			// integration
 			agents[id].velocity += agents[id].acceleration * dt;
 			position[id] += agents[id].velocity * dt;
+			/*
+			position[id].x = min(position[id].x, floatDim);
+			position[id].x = max(position[id].x, 0.0f);
+			position[id].y = min(position[id].y, floatDim);
+			position[id].y = max(position[id].y, 0.0f);
+			position[id].z = min(position[id].z, floatDim);
+			position[id].z = max(position[id].z, 0.0f);
+			*/
+			Vec3f vec2Origin = center - position[id];
+			if(vec2Origin.mag() >= maxradius) { position[id] += vec2Origin * 1.95; }
+			
+			/*	
+			if(position[id].x > space.dim()) {position[id].x -= space.dim();}
+			if(position[id].x < 0) {position[id].x += space.dim();}
+			if(position[id].y > space.dim()) {position[id].y -= space.dim();}
+			if(position[id].y < 0) {position[id].y += space.dim();}
+			if(position[id].z > space.dim()) {position[id].z -= space.dim();}
+			if(position[id].z < 0) {position[id].z += space.dim();}
+			*/			
+
+			//if (id == 10) {cout << position[id] << endl;}
+			space.move(id, position[id]);
 			// clearing acceleration
 			agents[id].acceleration.zero();
 			// updating shareState agents
 			state().agent[id].pos = position[id];
 			state().agent[id].col = colors[id];
 
+			// update trail
+			//Vec3f& trailPosition(trails[id].vertices()[trailIdx]);
+			//trailPosition = o.pos;
 		  }
 
 		  /*
@@ -179,14 +259,15 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			colors[i] = state().agent[i].col;
 		} 	
 	  }
+	  trailIdx += 1;
 
   }
 
   void onDraw(Graphics& g) override {
     //
 	g.clear(0.0);
-	//g.shader(pointShader);
-	//g.shader().uniform("pointSize", pointSize.get() / 100);
+	g.shader(pointShader);
+	g.shader().uniform("pointSize", pointSize.get() / 100);
 	//g.blending(true);
 	//g.blendModeTrans();
 	//g.depthTesting(true);
@@ -194,6 +275,11 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	//cout << mesh.vertices()[0] << endl;
 	//cout << nav().uf() << endl;
 	g.draw(mesh);
+	/*
+	for (unsigned id = 0; id < N; id++) {
+		g.draw(trails[id]);
+	}
+	*/
 	
 	if(isPrimary()){
 	  gui.draw(g);
