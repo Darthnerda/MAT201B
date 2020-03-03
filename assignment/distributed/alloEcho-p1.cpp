@@ -12,47 +12,9 @@
 #include "libfreenect.h"
 #include "libfreenect_sync.h"
 
-#if defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
 using namespace al;
 using namespace std;
 #include <vector>
-
-float* LoadVertexMatrix()
-{
-    float fx = 594.21f;
-    float fy = 591.04f;
-    float a = -0.0030711f;
-    float b = 3.3309495f;
-    float cx = 339.5f;
-    float cy = 242.7f;
-    float mat[16] = {
-        1/fx,     0,  0, 0,
-        0,    -1/fy,  0, 0,
-        0,       0,  0, a,
-        -cx/fx, cy/fy, -1, b
-    };
-    return mat;
-}
-
-
-// This matrix comes from a combination of nicolas burrus's calibration post
-// and some python code I haven't documented yet.
-float* LoadRGBMatrix()
-{
-    float mat[16] = {
-        5.34866271e+02,   3.89654806e+00,   0.00000000e+00,   1.74704200e-02,
-        -4.70724694e+00,  -5.28843603e+02,   0.00000000e+00,  -1.22753400e-02,
-        -3.19670762e+02,  -2.60999685e+02,   0.00000000e+00,  -9.99772000e-01,
-        -6.98445586e+00,   3.31139785e+00,   0.00000000e+00,   1.09167360e-02
-    };
-    return mat;
-    //glMultMatrixf(mat);
-}
 
 void no_kinect_quit(void)
 {
@@ -70,7 +32,6 @@ void DrawGLScene() {
     if (freenect_sync_get_video((void**)&rgb, &ts, 0, FREENECT_VIDEO_RGB) < 0)
 	no_kinect_quit();
 
-    static unsigned int indices[480][640];
     static short xyz[480][640][3];
     int i,j;
     for (i = 0; i < 480; i++) {
@@ -78,18 +39,8 @@ void DrawGLScene() {
             xyz[i][j][0] = j;
             xyz[i][j][1] = i;
             xyz[i][j][2] = depth[i*640+j];
-            indices[i][j] = i*640+j;
         }
     }
-
-    //cout << rgb[0] << endl;
-
-    cout << rgb[0] << endl;
-    
-
-    // set the projection from the XYZ to the texture image
-    //float[16] foo = LoadRGBMatrix() * LoadVertexMatrix() * Vec3f(1/640.0f, 1/480.0f, 1);
-    
 }
 
 string slurp(string fileName);
