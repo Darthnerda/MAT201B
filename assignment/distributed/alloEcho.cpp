@@ -229,6 +229,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		}else{
 			mesh.vertex(0,0,0);
 			mesh.color(0,1,0);
+			mesh.texCoord(5,0);
 		}
 	}
 
