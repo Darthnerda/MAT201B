@@ -4,9 +4,13 @@
 #include "al/ui/al_Parameter.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 #include "al/spatial/al_HashSpace.hpp"
+#include "al/graphics/al_Shapes.hpp"
 
-#include "Darthnerda/assignment/distributed/libfreenect/include/libfreenect.h"
-#include "Darthnerda/assignment/distributed/libfreenect/wrappers/c_sync/libfreenect_sync.h"
+//#include "Darthnerda/assignment/distributed/libfreenect/include/libfreenect.h"
+//#include "Darthnerda/assignment/distributed/libfreenect/wrappers/c_sync/libfreenect_sync.h"
+
+#include "libfreenect.h"
+#include "libfreenect_sync.h"
 
 #if defined(__APPLE__)
 #include <GLUT/glut.h>
@@ -18,7 +22,38 @@ using namespace al;
 using namespace std;
 #include <vector>
 
-/*
+float* LoadVertexMatrix()
+{
+    float fx = 594.21f;
+    float fy = 591.04f;
+    float a = -0.0030711f;
+    float b = 3.3309495f;
+    float cx = 339.5f;
+    float cy = 242.7f;
+    float mat[16] = {
+        1/fx,     0,  0, 0,
+        0,    -1/fy,  0, 0,
+        0,       0,  0, a,
+        -cx/fx, cy/fy, -1, b
+    };
+    return mat;
+}
+
+
+// This matrix comes from a combination of nicolas burrus's calibration post
+// and some python code I haven't documented yet.
+float* LoadRGBMatrix()
+{
+    float mat[16] = {
+        5.34866271e+02,   3.89654806e+00,   0.00000000e+00,   1.74704200e-02,
+        -4.70724694e+00,  -5.28843603e+02,   0.00000000e+00,  -1.22753400e-02,
+        -3.19670762e+02,  -2.60999685e+02,   0.00000000e+00,  -9.99772000e-01,
+        -6.98445586e+00,   3.31139785e+00,   0.00000000e+00,   1.09167360e-02
+    };
+    return mat;
+    //glMultMatrixf(mat);
+}
+
 void no_kinect_quit(void)
 {
     printf("Error: Kinect not connected?\n");
@@ -46,8 +81,16 @@ void DrawGLScene() {
             indices[i][j] = i*640+j;
         }
     }
+
+    //cout << rgb[0] << endl;
+
+    cout << rgb[0] << endl;
+    
+
+    // set the projection from the XYZ to the texture image
+    //float[16] foo = LoadRGBMatrix() * LoadVertexMatrix() * Vec3f(1/640.0f, 1/480.0f, 1);
+    
 }
-*/
 
 string slurp(string fileName);
 
@@ -85,11 +128,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   Mesh mesh;
   Mesh trails[N];
   Mesh sphere;
+  Texture tex;
 
   // simulation state
   Agent agents[N];
 
-  Parameter timeStep{ "/timeStep", "", 0.08, "", 0.0000001, 0.1 };
+  Parameter timeStep{ "/timeStep", "", 0.1, "", 0.0000001, 0.1 };
   Parameter pointSize{ "/pointSize", "", 1.0, "", 0.0, 40.0 };
   Parameter sepDistThresh{ "/sepDistThresh","",0.01,"",0.00001,1.0 };
   Parameter cohDistThresh{ "/cohDistThresh","",0.13,"",0.000001,1.0 };
@@ -109,7 +153,25 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	if(!cuttleboneDomain){
 		std::cerr << "ERROR: Could not start Cuttlebone. Quitting." << std::endl;
 		quit();
-	}	
+	}
+
+	// create semi transparent texture for sphere
+	tex.create2D(256, 256, Texture::RGBA8);
+	int Nx = tex.width();
+	int Ny = tex.height();
+	vector<Colori> pix;
+	pix.resize(Nx * Ny);
+
+	for (unsigned j = 0; j < Ny; ++j) {
+		for (unsigned i = 0; i < Nx; ++i) {
+			Color c = RGB(1,0,0);
+			c.a = 0.5;
+			pix[j * Nx + i] = c;
+		}
+	}
+	tex.submit(pix.data());
+
+	
 	
 	// compile shaders
 	pointShader.compile(slurp("../point-vertex.glsl"),
@@ -126,6 +188,22 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	// prep navigation stuff
 	navControl().useMouse(false);
 	nav().pos(center);
+	//nav().pos(0,0,0);
+
+	// initialize the boid sphere
+	sphere.primitive(Mesh::TRIANGLES);
+	//cout << "foo" << maxradius << endl;
+	addIcosphere(sphere, maxradius, 4);
+	sphere.decompress();
+	sphere.generateNormals();
+	vector<Vec3f>& verts(sphere.vertices());
+	for (unsigned i = 0; i < verts.size(); i++) {		
+		//sphere.color(1,0,0,0.2);
+		verts[i] += center;
+		//cout << verts[i] << endl;
+	}
+
+//	DrawGLScene();
 
 	// initialize all the agents
 	mesh.primitive(Mesh::POINTS);
@@ -134,7 +212,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			Vec3f initialPos = Vec3f(rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1).normalize(rnd::uniform() * maxradius) + center;
 			space.move(id, initialPos);
 			HashSpace::Object& o = space.object(id);
-			//cout << o.pos << endl;
+		//	cout << o.pos << endl;
 			mesh.vertex(o.pos);
 			mesh.color(0, 1, 0);
 			
@@ -162,14 +240,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		  // calculate physics
 		  vector<Vec3f>& position(mesh.vertices());
 		  vector<al::Color>& colors(mesh.colors());
-		  for (unsigned id = 0; id < N; id++) {
-		  	if (agents[id].agentType == THREEDVIDEO) {
-				for (unsigned i = 0; i < 480; i++) {
-					for (unsigned j = 0; j < 640; j++) {
-						//xyz[i][j]
-					}
-				}
-			}
+		  for (unsigned id = 0; id < N; id++) {	
 			HashSpace::Object& o = space.object(id);
 			qmany.clear();
 			int flockMates = qmany(space, o.pos, cohDistThresh * space.dim());
@@ -189,27 +260,10 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			// integration
 			agents[id].velocity += agents[id].acceleration * dt;
 			position[id] += agents[id].velocity * dt;
-			/*
-			position[id].x = min(position[id].x, floatDim);
-			position[id].x = max(position[id].x, 0.0f);
-			position[id].y = min(position[id].y, floatDim);
-			position[id].y = max(position[id].y, 0.0f);
-			position[id].z = min(position[id].z, floatDim);
-			position[id].z = max(position[id].z, 0.0f);
-			*/
+			
 			Vec3f vec2Origin = center - position[id];
 			if(vec2Origin.mag() >= maxradius) { position[id] += vec2Origin * 1.95; }
 			
-			/*	
-			if(position[id].x > space.dim()) {position[id].x -= space.dim();}
-			if(position[id].x < 0) {position[id].x += space.dim();}
-			if(position[id].y > space.dim()) {position[id].y -= space.dim();}
-			if(position[id].y < 0) {position[id].y += space.dim();}
-			if(position[id].z > space.dim()) {position[id].z -= space.dim();}
-			if(position[id].z < 0) {position[id].z += space.dim();}
-			*/			
-
-			//if (id == 10) {cout << position[id] << endl;}
 			space.move(id, position[id]);
 			// clearing acceleration
 			agents[id].acceleration.zero();
@@ -221,34 +275,6 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			//Vec3f& trailPosition(trails[id].vertices()[trailIdx]);
 			//trailPosition = o.pos;
 		  }
-
-		  /*
-		  for (int i = 0; i < N; i++) {
-			// calculate interactions
-			for (int j = i + 1; j < N; j++) {
-				double distance = dist(mesh.vertices()[i], mesh.vertices()[j]);
-				Vec3f force = Vec3f(0,0,0); 
-				if(agents[i].agentType == BOID){
-					Vec3f vec2mid = (position[j] - position[i]) / 2;
-					force += boidForce(this, distance, vec2mid, agents[i], agents[j]);	
-				}
-				agents[i].acceleration += force / agents[i].mass;
-				agents[j].acceleration -= force / agents[j].mass;
-			}
-			// integration
-			agents[i].velocity += agents[i].acceleration * dt;
-			position[i] += agents[i].velocity * dt;
-			// clearing acceleration
-			agents[i].acceleration.zero();
-			// updating shareState agents
-			state().agent[i].pos = position[i];
-			state().agent[i].col = colors[i];
-		  }
-		  */
-
-		  // clear all accelerations
-		  //for (auto& a : acceleration) a.zero();
-		  
 	  }else{
 		// record boid position and color data from shared state
 		vector<Vec3f>& position(mesh.vertices());
@@ -257,7 +283,8 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			//Vec3f oldPos = position[i];
 			position[i] = state().agent[i].pos;
 			colors[i] = state().agent[i].col;
-		} 	
+		}
+		//cout << position[0] << endl; 	
 	  }
 	  trailIdx += 1;
 
@@ -266,23 +293,34 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   void onDraw(Graphics& g) override {
     //
 	g.clear(0.0);
+
+	gl::blending(true);
+	gl::blendTrans();
+
+	static Light light;
+	g.lighting(true);
+	g.light(light);
+
+	tex.bind();
+	g.texture();
+	g.draw(sphere);
+	tex.unbind();	
+
 	g.shader(pointShader);
 	g.shader().uniform("pointSize", pointSize.get() / 100);
-	//g.blending(true);
-	//g.blendModeTrans();
-	//g.depthTesting(true);
-	
-	//cout << mesh.vertices()[0] << endl;
-	//cout << nav().uf() << endl;
+	//gl::depthTesting(true);
 	g.draw(mesh);
+	//g.meshColor();
+	
 	/*
 	for (unsigned id = 0; id < N; id++) {
 		g.draw(trails[id]);
 	}
 	*/
 	
+	
 	if(isPrimary()){
-	  gui.draw(g);
+		gui.draw(g);
 	}
   }
 
@@ -313,17 +351,4 @@ string slurp(string fileName) {
 		returnValue += line + "\n";
 	}
 	return returnValue;
-}
-
-Vec3f boidForce(auto context, float distance, Vec3f vec2mid, Agent A, Agent B) {
-	Vec3f boidForce = Vec3f(0,0,0);
-	//cout << avgResultant.normalized() << endl;
-	//cout << context->cohesionModifier << endl;
-	if (distance < context->cohDistThresh) { boidForce += vec2mid * context->cohesionModifier;	}
-
-	if (distance < context->sepDistThresh) { boidForce -= vec2mid * context->separationModifier; }
-
-	if (distance < context->alignDistThresh) { boidForce += (B.velocity.normalized() - A.velocity.normalized()).normalize(context->alignmentModifier); }
-
-	return boidForce;
 }

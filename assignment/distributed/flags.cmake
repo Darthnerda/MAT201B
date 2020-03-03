@@ -9,10 +9,12 @@ set(AL_VERBOSE_OUTPUT 1)
 
 # other directories to include. You can use relative paths to the
 # source file being built.
-set(app_include_dirs libfreenect/build/lib libfreenect/include libfreenect/wrappers/c_sync)
+set(app_include_dirs)
+#set(app_include_dirs libfreenect/build/lib libfreenect/include libfreenect/wrappers/c_sync)
 
 # other libraries to link
-set(app_link_libs ${app_path}/libfreenect/build/lib/libfreenect.a ${app_path}/libfreenect/build/lib/libfreenect_sync.a)
+set(app_link_libs freenect freenect_sync)
+#set(app_link_libs ${app_path}/libfreenect/build/lib/libfreenect.a ${app_path}/libfreenect/build/lib/libfreenect_sync.a)
 
 # definitions. Prepend -D to any defines
 set(app_definitions -DUSE_COLOR)
@@ -24,3 +26,4 @@ set(app_definitions -DUSE_COLOR)
 # linker flags, with `-` in the beginning
 #set(app_linker_flags -L/usr/local/lib)
 set(app_linker_flags -L~/Code/allolib_playground/Darthnerda/assignment/distributed)
+#set(app_linker_flags -L~/Code/allolib_playground/Darthnerda/assignment/distributed)
