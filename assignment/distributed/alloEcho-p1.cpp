@@ -20,9 +20,9 @@ const float  minDistance = -10;
 const float scalingFactor = 0.00021;
 const int trailLength = 40;
 unsigned trailIdx = 0;
-const int NBoids = 6000;
+const int NBoids = 8000;
 const int NSpheres = 10;
-const int sphereRingR = 25;
+const int sphereRingR = 35;
 const int kinectW = 640;
 const int kinectH = 480;
 const int maxBoidNeighbors = 100;
@@ -102,9 +102,9 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   // initialize some parameters
   Parameter timeStep{ "/timeStep", "", 0.1, "", 0.0000001, 0.1 };
   Parameter pointSize{ "/pointSize", "", 1.0, "", 0.0, 40.0 };
-  Parameter KDist{ "/KDist","",0.13,"",0.000001,1.0 };
+  Parameter KDist{ "/KDist","",0.23,"",0.000001,1.0 };
   Parameter cohesionModifier{ "/cohesionModifier","",0.60,"",0.1,10 };
-  Parameter separationModifier{ "/separationModifier","",0.7,"",0.1,10 };
+  Parameter separationModifier{ "/separationModifier","",0.8,"",0.1,10 };
   Parameter alignmentModifier{ "/alignmentModifier","",0.96,"",0,10 };
   
   // declare the gui
@@ -124,21 +124,6 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		quit();
 	}
 
-	// create semi transparent texture for the bubble shells
-	tex.create2D(256, 256, Texture::RGBA8);
-	int Nx = tex.width();
-	int Ny = tex.height();
-	vector<Colori> pix;
-	pix.resize(Nx * Ny);
-	for (unsigned j = 0; j < Ny; ++j) {
-		for (unsigned i = 0; i < Nx; ++i) {
-			Color c = RGB(1,0,0);
-			c.a = 0.5;
-			pix[j * Nx + i] = c;
-		}
-	}
-	tex.submit(pix.data());
-
 	// compile shaders
 	pointShader.compile(slurp("../point-vertex.glsl"),
 		slurp("../point-fragment.glsl"),
@@ -154,6 +139,21 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	// prep navigation stuff
 	navControl().useMouse(false);
 	nav().pos(Vec3f(0,0,25));
+
+	// create semi transparent texture for the bubble shells
+	tex.create2D(256, 256, Texture::RGBA8);
+	int Nx = tex.width();
+	int Ny = tex.height();
+	vector<Colori> pix;
+	pix.resize(Nx * Ny);
+	for (unsigned j = 0; j < Ny; ++j) {
+		for (unsigned i = 0; i < Nx; ++i) {
+			Color c = RGB(1,0,0);
+			c.a = 0.5;
+			pix[j * Nx + i] = c;
+		}
+	}
+	tex.submit(pix.data());
 
 	// initialize the boid spheres
 	for (unsigned i = 0; i < NSpheres; i++) {
@@ -174,10 +174,10 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		}
 	}
 
-	// Generate some hashspace related constants
+	// Figure out some hashspace related globals
 	maxradius = bubbles[0].space.maxRadius();
 	floatDim = (float)bubbles[0].space.dim();
-	const Vec3f hashCenter(floatDim/2, floatDim/2, floatDim/2);
+	hashCenter = Vec3f(floatDim/2, floatDim/2, floatDim/2);
 
 	// initialize all the points in the mesh
 	mesh.primitive(Mesh::POINTS);
@@ -277,7 +277,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				//trailPosition = o.pos;
 			  }
 		}
-	  }else{
+	  }else{ // we are a renderer not the simulator
 		// record boid position and color data from shared state
 		vector<Vec3f>& position(mesh.vertices());
 		vector<al::Color>& colors(mesh.colors());
