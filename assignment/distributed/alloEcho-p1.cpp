@@ -18,26 +18,34 @@ using namespace std;
 // tweak zone
 const float  minDistance = -10;
 const float scalingFactor = 0.00021;
-const int trailLength = 40;
-unsigned trailIdx = 0;
+const int trailLength = 4;
 const int NBoids = 8000;
 const int NSpheres = 10;
 const int sphereRingR = 35;
 const int kinectW = 640;
 const int kinectH = 480;
 const int maxBoidNeighbors = 100;
+const bool kinectInitiallyStreaming = false;
+const unsigned initialKinectSphere = 5;
+const float initialShellTransparency = 0.079;
+//const al::Color shellFactions[] = { RGB(1,0,0), RGB(0,1,0), RGB(0,0,1) };
 // end tweak zone
 
 // calculate some constants
 const int NKinect = kinectW * kinectH;
-const int boidifyStride = floor(NKinect / NBoids);
 const int boidsPerSphere = NBoids / NSpheres;
+const int boidifyStride = ceil(NKinect / boidsPerSphere);
 HashSpace::Query qmany(maxBoidNeighbors);
 
 // early globals declarations
 unsigned maxradius;
 float floatDim;
 Vec3f hashCenter;
+bool kinectStreaming = kinectInitiallyStreaming;
+unsigned trailIdx = 0;
+//vector<Colori> shellPix;
+//int allegiances[265*265];
+//unsigned kinectSphere = initialKinectSphere;
 
 // early function declarations
 string slurp(string fileName);
@@ -46,6 +54,10 @@ void no_kinect_quit(void)
 {
     printf("Error: Kinect not connected?\n");
     exit(1);
+}
+
+bool isBoid(unsigned id) {
+	return false;
 }
 
 // possibly unused calibration matrices
@@ -65,13 +77,13 @@ const Matrix4f rgbCalibrate(
 // data structures
 enum sphereType {BOID, THREEDVIDEO};
 
-struct ShareAgent {
+struct ShareVoxel {
   Vec3f pos;
   al::Color col;
 };
 
 struct SharedState {
-  ShareAgent agents[NKinect];
+  ShareVoxel voxels[NKinect];
 };
 
 struct Agent {
@@ -90,14 +102,16 @@ struct Bubble {
 
 struct MyApp : public DistributedAppWithState<SharedState> {
   // declare meshes and textures
-  Mesh mesh;
+  Mesh boids;
   Mesh trails[NBoids];
   Mesh spheres[NSpheres];
-  Texture tex;
+  Mesh kinectVoxels;
+  //Texture shellTex;
 
   // declare simulation structs
   //Agent agents[NBoids];
   Bubble bubbles[NSpheres];
+  //HashSpace shellSpace;
 
   // initialize some parameters
   Parameter timeStep{ "/timeStep", "", 0.1, "", 0.0000001, 0.1 };
@@ -106,7 +120,11 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   Parameter cohesionModifier{ "/cohesionModifier","",0.60,"",0.1,10 };
   Parameter separationModifier{ "/separationModifier","",0.8,"",0.1,10 };
   Parameter alignmentModifier{ "/alignmentModifier","",0.96,"",0,10 };
-  
+  Parameter minimumDisparity{ "/minimumDisparity", "", 500, "", 0, 1000 };
+  Parameter maximumDisparity{ "/maximumDisparity", "", 1100, "", 0, 5000 };
+  ParameterInt kinectSphere{ "/kinectSphere", "", initialKinectSphere, "", 0, NSpheres - 1 };
+  Parameter shellTransparency{ "/shellTransparency", "", initialShellTransparency, "", 0, 1 };
+
   // declare the gui
   ControlGUI gui;
 
@@ -130,37 +148,53 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		slurp("../point-geometry.glsl"));
 
 	// pipe parameters into the gui
-	gui << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep;
+	gui << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency;
 	gui.init();
 
 	// pipe parameters to the shared parameter server
-	parameterServer() << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep;
+	parameterServer() << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency;
 
 	// prep navigation stuff
 	navControl().useMouse(false);
 	nav().pos(Vec3f(0,0,25));
 
+	/*
 	// create semi transparent texture for the bubble shells
-	tex.create2D(256, 256, Texture::RGBA8);
-	int Nx = tex.width();
-	int Ny = tex.height();
-	vector<Colori> pix;
-	pix.resize(Nx * Ny);
+	shellTex.create2D(256, 256, Texture::RGBA8);
+	int Nx = shellTex.width();
+	int Ny = shellTex.height();
+	//vector<Colori> pix;
+	shellPix.resize(Nx * Ny);
+	shellSpace = HashSpace(4, Nx * Ny);
+	int n, m;
+	n = m = 0;
 	for (unsigned j = 0; j < Ny; ++j) {
 		for (unsigned i = 0; i < Nx; ++i) {
-			Color c = RGB(1,0,0);
+			Color c = RGB( 0, 0, 0 );	
+			unsigned idx = j * Nx + i;	
+			allegiances[idx] = -1; // meaning black
+		
+			if (al::rnd::prob(0.01)) { // its a seed!	
+				shellSpace.move( idx, Vec3f(j, i, 0) );
+				unsigned faction = floor( rnd::uniform() * (sizeof(shellFactions)/sizeof(*shellFactions)) );
+				allegiances[idx] = faction;
+				c = shellFactions[faction];
+				//cout << shellFactions[faction].components << endl;
+			}   //RGB(rnd::uniform(),rnd::uniform(),rnd::uniform());
+	
 			c.a = 0.5;
-			pix[j * Nx + i] = c;
+			shellPix[j * Nx + i] = c;
 		}
 	}
-	tex.submit(pix.data());
+	shellTex.submit(shellPix.data());
+	*/
 
 	// initialize the boid spheres
 	for (unsigned i = 0; i < NSpheres; i++) {
 		// initialize the bubble object stuff
 		bubbles[i].space = HashSpace(4, boidsPerSphere);
 		bubbles[i].center = Vec3f(bubbles[i].space.dim()/2, bubbles[i].space.dim()/2, bubbles[i].space.dim()/2);
-		bubbles[i].type = sphereType::BOID;
+		bubbles[i].type = i == 0 ? sphereType::THREEDVIDEO : sphereType::BOID;
 		bubbles[i].origin = Vec3f(sphereRingR * cos(i * 360/NSpheres), 0, sphereRingR * sin(i * 360/NSpheres));		
 
 		// create the sphere shell
@@ -168,9 +202,20 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		addIcosphere(spheres[i], bubbles[i].space.maxRadius(), 4);
 		spheres[i].decompress();
 		spheres[i].generateNormals();
+	
+		/*
+		// add texture coordinates
+		spheres[i].texCoord(0, 1);
+		spheres[i].texCoord(0, 0);
+		spheres[i].texCoord(1, 1);
+		spheres[i].texCoord(1, 0);
+		*/
+
+		// move the sphere to its origin point
 		vector<Vec3f>& verts(spheres[i].vertices());
 		for (unsigned j = 0; j < verts.size(); j++) {		
 			verts[j] += bubbles[i].origin + bubbles[i].center;
+			spheres[i].color((float)j / verts.size(), 0, 0, shellTransparency);
 		}
 	}
 
@@ -180,7 +225,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	hashCenter = Vec3f(floatDim/2, floatDim/2, floatDim/2);
 
 	// initialize all the points in the mesh
-	mesh.primitive(Mesh::POINTS);
+	boids.primitive(Mesh::POINTS);
 	if(cuttleboneDomain->isSender()){
 		for (unsigned i = 0; i < NSpheres; i++) {
 			for (unsigned id = 0; id < boidsPerSphere; id++) {
@@ -195,22 +240,33 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				bubbles[i].agents[id].acceleration = Vec3f(0,0,0);
 				
 				// put the boid position, color, and size in the mesh
-				mesh.vertex(o.pos+bubbles[i].origin);
-				mesh.color(0, 1, 0);
-				mesh.texCoord(pow(bubbles[i].agents[id].mass,1/3), 0);
+				boids.vertex(o.pos+bubbles[i].origin);
+				boids.color(0, 1, 0);
+				boids.texCoord(pow(bubbles[i].agents[id].mass,1/3), 0);
 
 				// create the trail mesh for this boid
 				for (unsigned j = 0; j < trailLength; j++) {
-					trails[id].vertex(0,0,0);
+					trails[i * boidsPerSphere + id].vertex(o.pos + bubbles[i].origin);
 				}
 			}
 		}
+		kinectVoxels.primitive(Mesh::POINTS);
+		for (unsigned i = 0; i < NKinect; i++) {
+			// fill the kinect voxels with default x and y coordinates which won't really change
+			kinectVoxels.vertex(floor(i / kinectW),i % kinectW,0);
+			kinectVoxels.color(0,0,0);
+		}
 	}else{
 		// on the receiving end we will need a place for all the 300,000 or so kinect voxels
+		for (unsigned i = 0; i < NBoids; i++) {
+			boids.vertex(0,0,0);
+			boids.color(0,0,0);
+			boids.texCoord(5,0);
+		}
 		for (unsigned i = 0; i < NKinect; i++) {
-			mesh.vertex(0,0,0);
-			mesh.color(0,1,0);
-			mesh.texCoord(5,0);
+			kinectVoxels.vertex(0,0,0);
+			kinectVoxels.color(0,1,0);
+			kinectVoxels.texCoord(2,0);
 		}
 	}
 
@@ -219,12 +275,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   void onAnimate(double dt) override {
 	  dt = timeStep;
 	  if(cuttleboneDomain->isSender()){
-		  // update the meshes
-		  vector<Vec3f>& position(mesh.vertices());
-		  vector<al::Color>& colors(mesh.colors());
+		  // update the boids mesh
+		  vector<Vec3f>& position(boids.vertices());
+		  vector<al::Color>& colors(boids.colors());
 		  for (unsigned i = 0; i < NSpheres; i++){
-			  // skip this sphere's update if there's supposed to be kinect data there
-			  if (bubbles[i].type == THREEDVIDEO) {
+			  // skip this sphere's update if the kinect is streaming and there's no kinect data there
+			  if (kinectStreaming && i != kinectSphere) {
 				continue;
 			  }
 			  for (unsigned id = 0; id < boidsPerSphere; id++) {		
@@ -246,9 +302,6 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 					Agent& A = bubbles[i].agents[id];
 					boidForce += Vec3f((B.velocity - A.velocity).normalize(alignmentModifier)); // alignment
 				}
-
-				// get index of boid in mesh
-				unsigned idx = i * boidsPerSphere + id;
 				
 				// integrate forces into mesh position
 				bubbles[i].agents[id].acceleration += boidForce / bubbles[i].agents[id].mass;
@@ -262,32 +315,67 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				Vec3f vec2Origin = hashCenter - o.pos;
 				if(vec2Origin.mag() >= maxradius) { bubbles[i].space.move(id, o.pos + vec2Origin * 1.95); }
 
+				// get index of boid in mesh
+				unsigned idx = i * boidsPerSphere + id;
+
+				// get world position
+				Vec3f worldPos(o.pos + bubbles[i].origin);
+
 				// update mesh position to hashspace + origin
-				position[idx] = o.pos + bubbles[i].origin;	
+				position[idx] = worldPos;	
 				
-				// sync hashspace position with mesh position; Subtracting from origin puts it into the space particular to the bubble's hashspace.
-				//bubbles[i].space.move(id, position[idx] - bubbles[i].origin);
-				
+	
 				// updating shareState agents
-				state().agents[id].pos = position[idx];
-				state().agents[id].col = colors[idx];
+				state().voxels[id].pos = position[idx];
+				state().voxels[id].col = colors[idx];
 
 				// update trail
 				//Vec3f& trailPosition(trails[idx].vertices()[trailIdx]);
-				//trailPosition = o.pos;
+				//trailPosition = worldPos;
+			  }
+			  // update the texture for the shells
+			  vector<al::Color>& sphereColors(spheres[i].colors()); 
+			  for (unsigned i = 0; i < sphereColors.size(); i++) {
+			  	if(rnd::prob(0.1)) { sphereColors[i] += rnd::uniform() * 2 - 1; sphereColors[i].a = shellTransparency; }
 			  }
 		}
-	  }else{ // we are a renderer not the simulator
-		// record boid position and color data from shared state
-		vector<Vec3f>& position(mesh.vertices());
-		vector<al::Color>& colors(mesh.colors());
-		for(int i = 0; i < NKinect; i++){
-			//Vec3f oldPos = position[i];
-			position[i] = state().agents[i].pos;
-			colors[i] = state().agents[i].col;
+		
+		
+
+		/*
+		// update the texture for the shells
+		shellTex.invalidate();
+		shellTex.create2D(256, 256, Texture::RGBA8);
+		int Nx = shellTex.width();
+		int Ny = shellTex.height();
+		shellPix.resize(Nx * Ny);
+		for (unsigned j = 0; j < Ny; ++j) {
+			for (unsigned i = 0; i < Nx; ++i) {
+				unsigned idx = j * Nx + i;
+				Color c = shellPix[idx];
+				cout << "foo " << allegiances[idx] << endl;
+				if ( allegiances[idx] == -1 ) {
+					//cout << 1 << endl; 
+					if (al::rnd::prob(0.1)) { // if we pass this check then we are spawning a thing 
+						HashSpace::Object& o = shellSpace.object(idx);
+						int numNearby = qmany(shellSpace, o.pos, 0.001 * shellSpace.dim());
+						if (numNearby > 1) { allegiances[idx] = allegiances[qmany[1]->id]; c = shellPix[qmany[1]->id]; } // if it spawns close to something, add it to its faction
+					}
+				}
+
+				c.a = 0.5;
+				//cout << (int)shellPix[idx].r << (int)shellPix[idx].g << (int)shellPix[idx].b << endl;
+				shellPix[idx] = c;
+			}
 		}
+		shellTex.submit(shellPix.data());
+		*/
+
+
 	  }
 	  trailIdx += 1;
+	  trailIdx = trailIdx > trailLength * NBoids ? 0 : trailIdx;
+	  //cout << trailIdx << endl;
   }
 
   void onDraw(Graphics& g) override {
@@ -300,17 +388,25 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	g.lighting(true);
 	g.light(light);
 
+	//vector<Vec3f>& positions(kinectVoxels.vertices());
+	//vector<al::Color>& colors(kinectVoxels.colors());
 	for (unsigned i = 0; i < NSpheres; i++) {
 		// draw the sphere shell meshes
-		tex.bind();
-		g.texture();
+		//shellTex.bind();
+		//g.texture();
+		gl::depthTesting(true);
+		g.meshColor();
 		g.draw(spheres[i]);
-		tex.unbind();	
+		//shellTex.unbind();		
+	}
 
+	
+	gl::depthTesting(false);
+	if (cuttleboneDomain->isSender()) {
 		// if any of the spheres are marked for kinect data, change the mesh data according to that
-		if (bubbles[i].type == THREEDVIDEO) {
+		if (kinectStreaming) {
 			// grab depth and rgb data from kinect
-			mesh.reset();
+			kinectVoxels.reset();
 			short *depth = 0;
 			char *rgb = 0;
 			uint32_t ts;
@@ -320,33 +416,54 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				no_kinect_quit();
 
 			// update mesh to reflect kinect point cloud
-			int i,j;
+			int j,k;
 			int n = 0;
-			int m = 0;
-			for (i = 0; i < kinectH; i++) {
-				for (j = 0; j < kinectW; j++) {	
+			unsigned m = 0;
+			for (j = 0; j < kinectH; j++) {
+				for (k = 0; k < kinectW; k++) {	
 					//double z = 0.1236 * tan((double)depth[i*kinectW+j] / 2842.5 + 1.1863);
-					double z = ((double)depth[i*kinectW+j] - 500) * (floatDim/(1100 - 500));
-					Vec3f pos(j / (float)kinectW * floatDim, i / (float)kinectW * floatDim, z);
-					mesh.vertex(pos + bubbles[i].origin);
-					mesh.color(Color(((float)rgb[n++]+128)/255, ((float)rgb[n++]+128)/255, ((float)rgb[n++]+128)/255, 1.0));
-					mesh.texCoord(1, 0);
+					double z = ((double)depth[j*kinectW+k] - minimumDisparity) * (floatDim/(maximumDisparity - minimumDisparity));
+					Vec3f pos(k / (float)kinectW * floatDim, j / (float)kinectW * floatDim, z);
+				
+					// if the voxel is outside the sphere or is a boid then just put this kinect data at the hashspace center
+					if ((pos - hashCenter).mag() > maxradius || isBoid(m/boidifyStride)) { pos = hashCenter; }
+					else {
+						// if in the sphere, and not a boid, then update a corresponding point in the boid space
+						if (m % boidifyStride == 0) { bubbles[kinectSphere].space.move(m / boidifyStride, pos); }
+					}
+	
+					Vec3f worldPos(pos + bubbles[kinectSphere].origin);
+					//if (isBoidified(m)) { worldPos = Vec3f(0,0,0); }
+				
+					kinectVoxels.vertex(worldPos);
+					kinectVoxels.color(((float)rgb[n++]+128)/255, ((float)rgb[n++]+128)/255, ((float)rgb[n++]+128)/255, 1.0);
+					kinectVoxels.texCoord(5, 0);
+
+					// update state
+					//Vec3f oldPos = position[i];
+					state().voxels[m].pos = kinectVoxels.vertices()[m];
+					state().voxels[m].col = kinectVoxels.colors()[m];
+					
+					// update m, which is the voxel index
+					m = m + 1;
 				}
-			}	
-		}
+			}
+		}	
 	}
+
+	// TO DO: Add a state retrieval point here in an else statement so that the renderers will be able to pull the voxels from state.
+
 	
 	g.shader(pointShader);
 	g.shader().uniform("pointSize", pointSize.get() / 100);
-	//gl::depthTesting(true);
-	g.draw(mesh);
+	if (kinectStreaming) { /*g.meshColor();*/ g.draw(kinectVoxels); } else { g.draw(boids); }
 
 	
-	/*
-	for (unsigned id = 0; id < N; id++) {
-		g.draw(trails[id]);
+	
+	for (unsigned id = 0; id < NBoids; id++) {
+		//g.draw(trails[id]);
 	}
-	*/
+	
 	
 	
 	if(isPrimary()){
