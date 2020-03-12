@@ -27,7 +27,7 @@ const int sphereRingR = 35;
 const int kinectW = 640;
 const int kinectH = 480;
 const int maxBoidNeighbors = 100;
-const bool kinectInitiallyStreaming = true;
+const bool kinectInitiallyStreaming = false;
 const unsigned initialKinectSphere = 1;
 const float initialShellTransparency = 0.027;
 const float initialRotateSpeed = 0.001;
@@ -486,6 +486,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			vector<al::Color>& sphereColors(spheres[i].colors());
 			for (unsigned j = 0; j < sphereColors.size(); j++) {
 				sphereColors[j] += state().shareSpheres[i].vertBrightnesses[j];
+				sphereColors[j].a = shellTransparency;
 			}
 			//cout << sphereColors[0] << endl;
 		}
