@@ -85,7 +85,6 @@ struct ShareBoidVoxel {
 
 struct ShareKinectVoxel {
   short depth;
-//  char col[3];
 };
 
 struct ShareSphere {
@@ -94,10 +93,15 @@ struct ShareSphere {
 };
 
 struct SharedState {
-  ShareBoidVoxel boidVoxels[NBoids];
-  ShareKinectVoxel kinectVoxels[NKinect];
+  // Every boid voxel will use 6 floats (3 pos, 3 col), and every two kinect voxels will use 1 float (depth).
+  // If we're in boids-only mode then there will be NBoids, which will always be smaller than NKinect.
+  // If we're in kinect mode then we will be using all of our memory. boidsPerSphere counts the number of boids additional to kinect voxels because only one sphere will be producing boids in this mode.
+  // since the kinect depth data is in shorts, we can combine two shorts into one int, cast that to float, then cast to int and split into two shorts again on the other side
+  float voxData[(boidsPerSphere * 6) + (NKinect / 2)]; 
   ShareSphere shareSpheres[NSpheres];
   al::Color backgroundColor;
+  Vec3d navPos;
+  Quatd navQuat;
 };
 
 struct Agent {
@@ -145,7 +149,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   Parameter shellTransparency{ "/shellTransparency", "", initialShellTransparency, "", 0, 1 };
   Parameter rotateSpeed{ "/rotateSpeed", "", initialRotateSpeed, "", 0.0, 0.05 };
   ParameterBool boidifying{ "/boidifying", "", 0, "", 0, 1.0 };
-  Parameter backgroundBrightness{ "/backgroundBrightness", "", 0.3, "", 0, 1.0};
+  Parameter backgroundBrightness{ "/backgroundBrightness", "", 0.0, "", 0, 1.0};
 
   // declare the gui
   ControlGUI gui;
@@ -333,7 +337,8 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 							pos = hashCenter;
 						}
 						else {
-							// if in the sphere, and not a boid, then update a corresponding point in the boid space
+							// if in the sphere, and not a boid, then update a corresponding point in the boid space;
+							// since there are way fewer boids in a sphere than kinect voxels, then we have to select them with a stride;
 							if (m % boidifyStride == 0) { bubbles[kinectSphere].space.move(m / boidifyStride, pos); }
 						}
 					}
@@ -343,12 +348,15 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				
 					// update the kinect voxels.
 					kinectVoxels.vertex(worldPos);
-					//kinectVoxels.color(((float)rgb[n++])/255, ((float)rgb[n++])/255, ((float)rgb[n++])/255, 1.0);
 					kinectVoxels.color(0.5, 0, 0);
 					kinectVoxels.texCoord(5, 0);
 
-					// update shared state
-					state().kinectVoxels[m].depth = depth[j*kinectW+k];
+					// Right now we aren't really setting the color of kinect voxels, due to bandwidth constraints
+					//kinectVoxels.color(((float)rgb[n++])/255, ((float)rgb[n++])/255, ((float)rgb[n++])/255, 1.0);
+
+					// update shared state every second depth value, combining this value and the last into one float value
+					//state().kinectVoxels[m].depth = depth[j*kinectW+k];
+					if (m % 2 == 0) { state().voxData[m] = (float)((uint32_t)depth[j*kinectW+k] << 16 | (uint32_t)depth[j*kinectW+k-1]); }
 					
 					// update m, which is the state voxel index
 					m = m + 1;
@@ -359,9 +367,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		// update each sphere's little world
 		vector<Vec3f>& position(boids.vertices());
 		vector<al::Color>& colors(boids.colors());
+		// if we're streaming kinect, then the boids are tacked on to the end. If we're doing boids-only, then start from the beginning
+		unsigned voxStateIdx = kinectStreaming ? NKinect / 2 : 0;
 		for (unsigned i = 0; i < NSpheres; i++){
 			// update the sphere's origin location by increasing phase
 			bubbles[i].origin = Vec3f(sphereRingR * cos(i * M_2PI/NSpheres + bubbleRingPhase), 0, sphereRingR * sin(i * M_2PI/NSpheres + bubbleRingPhase));
+			state().shareSpheres[i].origin = bubbles[i].origin; // update state
 			bubbleRingPhase += dt * rotateSpeed;
 
 			// update the colors in the shells
@@ -419,67 +430,43 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				Vec3f worldPos(o.pos + bubbles[i].origin);
 
 				// update mesh position to hashspace + origin
-				position[idx] = worldPos;	
+				position[idx] = worldPos;
+
+				// update the state
+				for (unsigned j = 0; j < 3; j++) {
+					state().voxData[voxStateIdx++] = position[idx][j];
+				}
+				for (unsigned j = 0; j < 3; j++) {
+					state().voxData[voxStateIdx++] = colors[idx][j];
+				}
 				
 				// update trail
 				//Vec3f& trailPosition(trails[idx].vertices()[trailIdx]);
 				//trailPosition = worldPos;
 			} 
 		}
-		// update all the state on the sender side
 
-		// first update boid state
-		unsigned N = kinectStreaming ? boidsPerSphere : NBoids; // if we're streaming, then only send one sphere's worth of boids
-		vector<Vec3f>& boidVerts(boids.vertices());
-		vector<al::Color>& boidColors(boids.colors());
-		for (unsigned i = 0; i < N; i++) {
-			state().boidVoxels[i].pos = boidVerts[i];
-			state().boidVoxels[i].col = boidColors[i];
-		}
-	
-		// then update sphere state
-		for (unsigned i = 0; i < NSpheres; i++) {
-			state().shareSpheres[i].origin = bubbles[i].origin;
-			vector<al::Color>& sphereColors(spheres[i].colors());
-			for (unsigned j = 0; j < sphereColors.size(); j++) {
-				//state().shareSpheres[i].vertBrightnesses[j] = sphereColors[j].r;
-			}
-			
-		}
-
-		// then update the background color state
+		// Update the background color state
 		state().backgroundColor = Color(backgroundBrightness, backgroundBrightness, backgroundBrightness);
+
+		// Update the nav pose state
+		state().navPos = nav().pos();
+		state().navQuat = nav().quat();
 	}
 	else { // if we're a renderer then
 		// update local state according to shared state
 
 		// first update boid state
-		unsigned N = kinectStreaming ? boidsPerSphere : NBoids; // if we're streaming, then only send one sphere's worth of boids
+		unsigned N = kinectStreaming ? boidsPerSphere + (NKinect / 2) : NBoids; // if we're streaming, then only send one sphere's worth of boids at the end of the thing
 		vector<Vec3f>& boidVerts(boids.vertices());
 		vector<al::Color>& boidColors(boids.colors());
-		//cout << "look at me!" << boidVerts[0] << endl;
-		for (unsigned i = 0; i < N; i++) {
-			boidVerts[i] = state().boidVoxels[i].pos;
-			boidColors[i] = state().boidVoxels[i].col;
+		for (unsigned i = kinectStreaming ? NKinect : 0; i < N; i++) {
+			boidVerts[i] = Vec3f(state().voxData[i*6+0], state().voxData[i*6+1], state().voxData[i*6+2]);
+			boidColors[i] = Color(state().voxData[i*6+3], state().voxData[i*6+4], state().voxData[i*6+5]);
+			//boidVerts[i] = state().boidVoxels[i].pos;
+			//boidColors[i] = state().boidVoxels[i].col;
 		}
-	
-		// then update kinect state	
-		unsigned M = kinectStreaming ? NKinect : 0; // if we're streaming, then send all the kinect data
-		kinectVoxels.reset();
-		for (unsigned i = 0; i < M; i++) {
-			float x = floor(i / kinectW);
-			float y = i % kinectW;
-			float z = ((float)state().kinectVoxels[i].depth - minimumDisparity) * (floatDim/(maximumDisparity - minimumDisparity));
-			Vec3f pos(x / (float)kinectW * floatDim, y / (float)kinectW * floatDim, z);
-			if ((pos - hashCenter).mag() > maxradius) { 
-				// if the voxel is outside the sphere then hide this kinect data at the hashspace center
-				pos = hashCenter; 
-			}
-			kinectVoxels.vertex(pos + bubbles[kinectSphere].origin);
-			kinectVoxels.color(0.5, 0, 0);
-			kinectVoxels.texCoord(0.5, 0);
-		}
-
+		
 		// then update sphere state
 		for (unsigned i = 0; i < NSpheres; i++) {
 			bubbles[i].origin = state().shareSpheres[i].origin;
@@ -488,7 +475,28 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				sphereColors[j] += state().shareSpheres[i].vertBrightnesses[j];
 				sphereColors[j].a = shellTransparency;
 			}
-			//cout << sphereColors[0] << endl;
+		}
+
+		// then update kinect state	
+		unsigned M = kinectStreaming ? NKinect : 0; // if we're streaming, then send all the kinect data
+		kinectVoxels.reset();
+		for (unsigned i = 0; i < M; i++) {
+			// Since every Ith element in state().voxData contains the shorts for two voxels, then every odd index in this loop needs to look backwards (i - 1) to find
+			// the element its looking for. For evens, the short is in the two higher significant bytes, so we have to shift right two bytes
+			// In both cases, we have to mask off the leftmost bits
+			uint32_t d = (i % 2 == 0) ? ((uint32_t)state().voxData[i / 2] >> 16) & 0xFFFF : (uint32_t)state().voxData[(i - 1) / 2] & 0xFFFF;
+			//if (i % 2 == 0) { d = ; } else { d =  } // take the appropriate parts of the stuff
+			float x = floor(i / kinectW);
+			float y = i % kinectW;
+			float z = ((float)d - minimumDisparity) * (floatDim/(maximumDisparity - minimumDisparity));	
+			Vec3f pos(x / (float)kinectW * floatDim, y / (float)kinectW * floatDim, z);
+			if ((pos - hashCenter).mag() > maxradius) { 
+				// if the voxel is outside the sphere then hide this kinect data at the hashspace center
+				pos = hashCenter; 
+			}
+			kinectVoxels.vertex(pos + bubbles[kinectSphere].origin);
+			kinectVoxels.color(0.5, 0, 0);
+			kinectVoxels.texCoord(0.5, 0);
 		}
 
 		// we don't need to update any local background color state on the renderer side, we'll just use the state directly
@@ -566,7 +574,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 };
 
 int main() {
- //printf("%lu\n", sizeof(SharedState)); return 0;
+//printf("%lu\n", sizeof(SharedState)); return 0;
 //Mesh m ; addIcosphere(m, 1, 4); printf("%d\n", m.vertices().size()) ; return 1;
   MyApp app;
   app.start();
