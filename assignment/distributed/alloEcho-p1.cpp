@@ -22,7 +22,7 @@ const float  minDistance = -10;
 const float scalingFactor = 0.00021;
 const int trailLength = 4;
 const int NBoids = 6000;
-const int NSpheres = 5;
+const int NSpheres = 10;
 const int sphereRingR = 35;
 const int kinectW = 640;
 const int kinectH = 480;
@@ -33,6 +33,7 @@ const float initialShellTransparency = 0.027;
 const float initialRotateSpeed = 0.001;
 const int NBoidifySeeds = 10;
 const int sphereSubdivisions = 3;
+const int NAttractorVerts = 4000;
 // end tweak zone
 
 // calculate some constants
@@ -78,15 +79,6 @@ const Matrix4f rgbCalibrate(
 // data structures
 enum sphereType {BOID, THREEDVIDEO};
 
-struct ShareBoidVoxel {
-  Vec3f pos;
-  al::Color col;
-};
-
-struct ShareKinectVoxel {
-  short depth;
-};
-
 struct ShareSphere {
   Vec3f origin;
   float vertBrightnesses[4000];  //[15360];
@@ -99,6 +91,7 @@ struct SharedState {
   // since the kinect depth data is in shorts, we can combine two shorts into one int, cast that to float, then cast to int and split into two shorts again on the other side
   float voxData[(boidsPerSphere * 6) + (NKinect / 2)]; 
   ShareSphere shareSpheres[NSpheres];
+  Vec3f attractorVox[NAttractorVerts];
   al::Color backgroundColor;
   Vec3d navPos;
   Quatd navQuat;
@@ -109,6 +102,16 @@ struct Agent {
   Vec3f acceleration;
   bool boidified;
   double mass;
+};
+
+struct attractorAgent {
+  double rho = 28.0;
+  double sigma = 10.0;
+  double beta = 8.0 / 3.0;
+
+  Vec3f getAttractorDerivative(Vec3f cursor) {
+	return Vec3f(sigma * (cursor.y - cursor.x), cursor.x * (rho - cursor.z) - cursor.y, cursor.x * cursor.y - beta * cursor.z);
+  }
 };
 
 struct Bubble {
@@ -132,10 +135,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   Mesh trails[NBoids];
   Mesh spheres[NSpheres];
   Mesh kinectVoxels;
+  Mesh aiAttractor;
 
   // declare simulation structs
   Bubble bubbles[NSpheres];
   boidifySeed boidifySeeds[NBoidifySeeds];
+  attractorAgent theAI;
 
   Parameter timeStep{ "/timeStep", "", 0.1, "", 0.0000001, 0.1 };
   Parameter pointSize{ "/pointSize", "", 1.749, "", 0.0, 40.0 };
@@ -150,6 +155,10 @@ struct MyApp : public DistributedAppWithState<SharedState> {
   Parameter rotateSpeed{ "/rotateSpeed", "", initialRotateSpeed, "", 0.0, 0.05 };
   ParameterBool boidifying{ "/boidifying", "", 0, "", 0, 1.0 };
   Parameter backgroundBrightness{ "/backgroundBrightness", "", 0.0, "", 0, 1.0};
+  Parameter rho{ "/rho", "", 28.0, "", 0, 100};
+  Parameter sigma{ "/sigma", "", 10.0, "", 0, 100};
+  Parameter beta{ "/beta", "", 7.0, "", 0, 100};
+  Parameter attractorScale{ "/attractorScale", "", 0.003, "", 0.00001, 0.01};
 
   // declare the gui
   ControlGUI gui;
@@ -187,11 +196,11 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 
 	// pipe parameters into the gui
 	gui.init();
-	gui << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency << rotateSpeed << boidifying << backgroundBrightness;
+	gui << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency << rotateSpeed << boidifying << backgroundBrightness << rho << sigma << beta << attractorScale;
 	//gui << sequencer << recorder;
 
 	// pipe parameters to the shared parameter server
-	parameterServer() << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency << rotateSpeed << boidifying << backgroundBrightness;
+	parameterServer() << pointSize << KDist << cohesionModifier << separationModifier << alignmentModifier << timeStep << minimumDisparity << maximumDisparity << kinectSphere << shellTransparency << rotateSpeed << boidifying << backgroundBrightness << rho << sigma << beta << attractorScale;
 
 	// prep navigation stuff
 	navControl().useMouse(false);
@@ -226,7 +235,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 	floatDim = (float)bubbles[0].space.dim();
 	hashCenter = Vec3f(floatDim/2, floatDim/2, floatDim/2);
 
-	// initialize all the points in the mesh
+	// initialize all the points in the boid mesh
 	boids.primitive(Mesh::POINTS);
 	if(cuttleboneDomain->isSender()){
 		// work out all the boids in all the spheres
@@ -256,6 +265,7 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 				}
 			}
 		}
+
 		// work out all the kinect voxels
 		kinectVoxels.primitive(Mesh::POINTS);
 		for (unsigned i = 0; i < NKinect; i++) {
@@ -263,11 +273,22 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			kinectVoxels.vertex(floor(i / kinectW),i % kinectW,0);
 			kinectVoxels.color(0.5,0,0);
 		}
+
 		// work out the seeds from which the kinect data will be boidified when the time comes
 		for (unsigned i = 0; i < NBoidifySeeds; i++) {
 			boidifySeeds[i].pos = Vec3f(rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1, rnd::uniform() * 2 - 1).normalize(rnd::uniform() * maxradius) + hashCenter;
 			boidifySeeds[i].affectiveRadius = 0;
 			boidifySeeds[i].expansionRate = rnd::uniform() * 0.9 + 0.1;
+		}
+
+		// create a pool of vertices for the aiAttractor body
+		aiAttractor.primitive(Mesh::LINE_STRIP);
+		aiAttractor.vertex(1.0,1.0,1.0); // set the initial point of the attractor
+		aiAttractor.color(0.0, 1, 0);
+		vector<Vec3f>& positions(aiAttractor.vertices());
+		for (unsigned i = 1; i < NAttractorVerts; i++) {
+			aiAttractor.vertex(positions[i-1] + theAI.getAttractorDerivative(positions[i-1]) * 0.01); // i acts as time and 0.01 acts as the time increment
+			aiAttractor.color(HSV(i/NAttractorVerts, 1, 1));
 		}
 	}else{
 		// on the receiving end we will need a place for all the 300,000 or so kinect voxels
@@ -282,9 +303,16 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			kinectVoxels.color(0.5,0,0);
 			//kinectVoxels.texCoord(2,0);
 		}
+		// and the ai attractor
+		aiAttractor.primitive(Mesh::LINE_STRIP);
+		for (unsigned i = 0; i < NAttractorVerts; i++) {
+			aiAttractor.vertex(0, 0, 0);
+			aiAttractor.color(HSV(i/NAttractorVerts, 1, 1));
+		}
 	}
   }
 
+  double t = 0.0;
   void onAnimate(double dt) override {
 	  dt = timeStep;
 	  if(cuttleboneDomain->isSender()){ 
@@ -446,6 +474,18 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			} 
 		}
 
+		// update the AI attractor
+		//theAI.rho = rho.get();
+		theAI.sigma = sigma.get();
+		theAI.beta = beta.get();
+		theAI.rho = sin(t++ / 0.00001) * (55 - 29) + 29;
+		vector<Vec3f>& aiVerts(aiAttractor.vertices());
+		aiVerts[0] = Vec3f(1.0,1.0,1.0); // reset first vertice
+		for (unsigned i = 1; i < NAttractorVerts; i++) {
+			aiVerts[i] = aiVerts[i-1] + theAI.getAttractorDerivative(aiVerts[i-1] * 0.01);
+			state().attractorVox[i] = aiVerts[i]; // updating the state
+		}
+
 		// Update the background color state
 		state().backgroundColor = Color(backgroundBrightness, backgroundBrightness, backgroundBrightness);
 
@@ -499,6 +539,11 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 			kinectVoxels.texCoord(0.5, 0);
 		}
 
+		vector<Vec3f>& aiVerts(aiAttractor.vertices());
+		for (unsigned i = 0; i < NAttractorVerts; i++) {
+			aiVerts[i] = state().attractorVox[i];
+		} 
+
 		// we don't need to update any local background color state on the renderer side, we'll just use the state directly
 	}
 
@@ -535,6 +580,12 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		g.meshColor();
 		g.draw(spheres[i]);
 	}
+
+	g.pushMatrix();
+	g.scale(attractorScale, attractorScale, attractorScale);
+	g.translate(-1,-1,-1);
+	g.draw(aiAttractor);
+	g.popMatrix();
 
 	// disable depth testing so now everything is painterly
 	gl::depthTesting(false);
