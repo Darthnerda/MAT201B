@@ -8,4 +8,4 @@ Ensure libfreenect is installed on your machine, and that the allolib_playground
 ## How to Run
 1) CD to allolib_playground, then use the command `./run.sh MAT201B/burningSpheres/burningSpheres.cpp`.
 2) In order to see the distributed state work, open a second terminal and repeat the step above.
-**To Enable Kinect Streaming** do `vim MAT201B/assignment/distributed/alloEcho-p1.cpp` and in the `//tweak zone` change the `kinectStreaming` value to `true`. Ensure the kinect is plugged in, then repeat the first two steps.
+**To Enable Kinect Streaming** do `vim MAT201B/burningSpheres/burningSpheres.cpp` and in the `//tweak zone` change the `kinectStreaming` value to `true`. Ensure the kinect is plugged in, then repeat the first two steps.
