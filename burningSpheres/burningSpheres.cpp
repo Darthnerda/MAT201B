@@ -33,7 +33,7 @@ const float initialShellTransparency = 0.027;
 const float initialRotateSpeed = 0.001;
 const int NBoidifySeeds = 10;
 const int sphereSubdivisions = 3;
-const int NAttractorVerts = 4000;
+const int NAttractorVerts = 40000;
 // end tweak zone
 
 // calculate some constants
@@ -477,8 +477,9 @@ struct MyApp : public DistributedAppWithState<SharedState> {
 		// update the AI attractor
 		//theAI.rho = rho.get();
 		theAI.sigma = sigma.get();
-		theAI.beta = beta.get();
-		theAI.rho = sin(t++ / 0.00001) * (55 - 29) + 29;
+		//theAI.beta = beta.get();
+		theAI.beta = sin(t++ * 0.002) * (10 - 5) + 5;
+		theAI.rho = sin(t * 0.001) * (55 - 29) + 29;
 		vector<Vec3f>& aiVerts(aiAttractor.vertices());
 		aiVerts[0] = Vec3f(1.0,1.0,1.0); // reset first vertice
 		for (unsigned i = 1; i < NAttractorVerts; i++) {
